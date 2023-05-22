@@ -1,3 +1,42 @@
 {
-  "extends": "next/core-web-vitals"
+  "extends": "next/core-web-vitals",
+  "plugins": ["unused-imports"],
+  "rules": {
+      "import/order":[
+        "error",
+        {
+          "groups": ["builtin", "external", "internal", "parent", "sibling", "index", "object", "type"],
+          "pathGroups": [
+            {
+              "pattern": "react",
+              "group": "external",
+              "position": "before"
+            },
+            {
+              "pattern": "next",
+              "group": "external",
+              "position": "before"
+            },
+              {
+                "pattern": "@chakra-ui/**",
+                "group": "external",
+                "position": "after"
+              }
+            ],
+          "pathGroupsExcludedImportTypes": ["react", "next", "next-auth"],
+          "alphabetize": {
+            "order": "asc",
+            "caseInsensitive":true
+          }
+        }
+      ],
+      "unused-imports/no-unused-imports": "error"
+    },
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "extensions": [".ts", ".tsx",".js"]
+      }
+    }
+  }
 }

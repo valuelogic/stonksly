@@ -2,11 +2,11 @@ import { NextResponse } from 'next/server';
 
 export async function GET(request: Request, {params} : {params: {symbol: string}}) {
 
-    const url = 'https://realstonks.p.rapidapi.com/TSLA';
+    const url = `https://realstonks.p.rapidapi.com/${params.symbol}`;
     const options = {
         method: 'GET',
         headers: {
-            'X-RapidAPI-Key': process.env.RAPID_API_KEY,
+            'X-RapidAPI-Key': process.env.RAPID_API_KEY || '',
             'X-RapidAPI-Host': 'realstonks.p.rapidapi.com'
         }
     };

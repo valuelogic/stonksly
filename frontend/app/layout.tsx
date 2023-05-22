@@ -1,12 +1,13 @@
-"use client";
+'use client'
 import './globals.css'
-import { Inter } from 'next/font/google'
 
 import { EthereumClient, w3mConnectors, w3mProvider } from '@web3modal/ethereum'
 import { Web3Modal } from '@web3modal/react'
+import { Inter } from 'next/font/google'
 import { configureChains, createConfig, WagmiConfig } from 'wagmi'
 import { hardhat, polygonMumbai } from 'wagmi/chains'
-import {Header} from "@/components/header/Header";
+import { ChakraProvider } from '@chakra-ui/react'
+import { Header } from '@/components/header/Header'
 
 const chains = [hardhat, polygonMumbai]
 const projectId = 'STONKSLY'
@@ -20,19 +21,16 @@ const wagmiConfig = createConfig({
 const ethereumClient = new EthereumClient(wagmiConfig, chains)
 
 const inter = Inter({ subsets: ['latin'] })
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className={inter.className}>
-      <Header />
-      <WagmiConfig config={wagmiConfig}>
-        {children}
-      </WagmiConfig>
-      <Web3Modal projectId={projectId} ethereumClient={ethereumClient} />
+        <ChakraProvider>
+          <Header />
+          <WagmiConfig config={wagmiConfig}>{children}</WagmiConfig>
+          <Web3Modal projectId={projectId} ethereumClient={ethereumClient} />
+        </ChakraProvider>
       </body>
     </html>
   )
