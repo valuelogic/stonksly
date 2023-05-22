@@ -1,10 +1,22 @@
-import React from "react";
-import {Web3Button} from "@web3modal/react";
+import React from 'react'
+import { Web3Button } from '@web3modal/react'
+import NextLink from 'next/link'
+import { Box, Flex, Link } from '@chakra-ui/react'
 
 export const Header = () => (
-    <ul className="flex">
-        <li className="flex-1 mr-2">
-            <Web3Button />
-        </li>
-    </ul>
+  <Box as="header" m={10}>
+  <Flex alignItems="center" justifyContent="space-between">
+    <Flex>
+      <Link as={NextLink} href="/" ml={10}>
+        Home
+      </Link>
+      <Link as={NextLink} href="/market" ml={20}>
+        Market
+      </Link>
+    </Flex>
+    <Box m={10}>
+      <Web3Button />
+    </Box>
+  </Flex>
+</Box>
 )
