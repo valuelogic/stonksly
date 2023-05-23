@@ -2,7 +2,7 @@
 pragma solidity 0.8.19;
 
 import "./Stonksly.sol";
-import {Functions, FunctionsClient} from "./dev/functions/FunctionsClient.sol";
+import {Functions, FunctionsClient} from "../functions/FunctionClient.sol";
 
 abstract contract Consumer is FunctionsClient {
     using Functions for Functions.Request;

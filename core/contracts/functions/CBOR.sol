@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+pragma solidity ^0.8.19;
 
-import "../../@ensdomains/buffer/0.1.0/Buffer.sol";
+import "./Buffer.sol";
 
 /**
  * @dev A library for populating CBOR encoded payload in Solidity.
