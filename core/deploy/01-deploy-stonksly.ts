@@ -14,8 +14,6 @@ const deploy = async (hre: HardhatRuntimeEnvironment) => {
 
   const args = [stonkslyWallet, maticPriceFeed];
 
-  console.log(chainId);
-
   const stonksly = await deploy("Stonksly", {
     from: deployer,
     args: args,

@@ -23,3 +23,5 @@ const setUp = async (hre: HardhatRuntimeEnvironment) => {
 };
 
 export default setUp;
+
+setUp.tags = ["setup"]
