@@ -10,7 +10,8 @@ import { ChakraProvider } from '@chakra-ui/react'
 import { Header } from '@/components/header/Header'
 
 const chains = [hardhat, polygonMumbai]
-const projectId = 'STONKSLY'
+
+const projectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_ID || ''
 
 const { publicClient } = configureChains(chains, [w3mProvider({ projectId })])
 const wagmiConfig = createConfig({

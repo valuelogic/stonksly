@@ -1,8 +1,9 @@
 'use client'
 import { useEffect, useState } from 'react'
+import { readContract } from '@wagmi/core'
 import axios from 'axios'
 import { v4 as uuidv4 } from 'uuid'
-import { useContractRead } from 'wagmi'
+import { useNetwork, useAccount } from 'wagmi'
 import { Flex } from '@chakra-ui/react'
 import abi from '../../maticUsdPrice.json'
 import Exchange from '@/components/Exchange'
@@ -11,18 +12,31 @@ import { ITicker, tickers } from '@/mocks/tickers'
 
 export default function Market() {
   const [tickersData, setTickerData] = useState<ITicker[]>([])
+  const [usdMaticData, setUsdMaticData] = useState(null)
+  const { isConnected } = useAccount()
+  const { chain } = useNetwork()
 
-  const { data: usdMaticData } = useContractRead({
-    address: '0xd0D5e3DB44DE05E9F294BB0a3bEEaF030DE24Ada',
-    abi: abi,
-    functionName: 'latestRoundData',
-    args: []
-  })
+  useEffect(() => {
+    const getMaticPrice = async () => {
+      const data = await readContract({
+        address: '0xd0D5e3DB44DE05E9F294BB0a3bEEaF030DE24Ada',
+        abi: abi,
+        functionName: 'latestRoundData',
+        args: []
+      })
+      if (data) {
+        setUsdMaticData(data[1])
+      }
+    }
+    if (chain?.name === 'Polygon Mumbai') {
+      getMaticPrice()
+    }
+  }, [chain])
 
   useEffect(() => {
     if (usdMaticData) {
       const tickersData: ITicker[] = [...tickers]
-      const maticPrice = Number(usdMaticData[1]) / 1e8
+      const maticPrice = Number(usdMaticData) / 1e8
       const getActualPrice = async (name: string) => {
         try {
           const response = await axios.get(`api/price/${name}`)
@@ -47,6 +61,9 @@ export default function Market() {
       })
     }
   }, [usdMaticData])
+
+  if (!isConnected) return <>Connect wallet</>
+  if (isConnected && chain?.name !== 'Polygon Mumbai') return <>Switch to Polygon Mumbai</>
 
   return (
     <Flex m={10} mt={100} justifyContent={'space-around'}>
