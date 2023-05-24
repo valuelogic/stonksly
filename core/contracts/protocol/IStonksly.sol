@@ -30,9 +30,9 @@ interface IStonksly {
 
     function withdrawFees() external;
 
-    // function addLiquidity() external payable;
+    function addLiquidity() external payable;
 
-    // function removeLiquidity(uint256 _amount) external;
+    function removeLiquidity(uint256 _amount) external;
 
     function getSTokens() external view returns (address[] memory);
 }

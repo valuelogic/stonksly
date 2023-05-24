@@ -26,6 +26,7 @@ import type {
 
 export interface IStonkslyInterface extends utils.Interface {
   functions: {
+    "addLiquidity()": FunctionFragment;
     "createSToken(string,string,string)": FunctionFragment;
     "emergencyRefund(uint256)": FunctionFragment;
     "finalizePurchase(uint256,uint256)": FunctionFragment;
@@ -33,6 +34,7 @@ export interface IStonkslyInterface extends utils.Interface {
     "getSTokens()": FunctionFragment;
     "initPurchase(address)": FunctionFragment;
     "initSale(address,uint256)": FunctionFragment;
+    "removeLiquidity(uint256)": FunctionFragment;
     "revertPurchase(uint256)": FunctionFragment;
     "revertSale(uint256)": FunctionFragment;
     "setPurchaseConsumer(address)": FunctionFragment;
@@ -42,6 +44,7 @@ export interface IStonkslyInterface extends utils.Interface {
 
   getFunction(
     nameOrSignatureOrTopic:
+      | "addLiquidity"
       | "createSToken"
       | "emergencyRefund"
       | "finalizePurchase"
@@ -49,6 +52,7 @@ export interface IStonkslyInterface extends utils.Interface {
       | "getSTokens"
       | "initPurchase"
       | "initSale"
+      | "removeLiquidity"
       | "revertPurchase"
       | "revertSale"
       | "setPurchaseConsumer"
@@ -56,6 +60,10 @@ export interface IStonkslyInterface extends utils.Interface {
       | "withdrawFees"
   ): FunctionFragment;
 
+  encodeFunctionData(
+    functionFragment: "addLiquidity",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "createSToken",
     values: [
@@ -89,6 +97,10 @@ export interface IStonkslyInterface extends utils.Interface {
     values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
+    functionFragment: "removeLiquidity",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
     functionFragment: "revertPurchase",
     values: [PromiseOrValue<BigNumberish>]
   ): string;
@@ -109,6 +121,10 @@ export interface IStonkslyInterface extends utils.Interface {
     values?: undefined
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "addLiquidity",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "createSToken",
     data: BytesLike
@@ -131,6 +147,10 @@ export interface IStonkslyInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "initSale", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "removeLiquidity",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "revertPurchase",
     data: BytesLike
@@ -179,6 +199,10 @@ export interface IStonksly extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    addLiquidity(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     createSToken(
       _name: PromiseOrValue<string>,
       _symbol: PromiseOrValue<string>,
@@ -216,6 +240,11 @@ export interface IStonksly extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    removeLiquidity(
+      _amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     revertPurchase(
       _requestId: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -240,6 +269,10 @@ export interface IStonksly extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
   };
+
+  addLiquidity(
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
   createSToken(
     _name: PromiseOrValue<string>,
@@ -278,6 +311,11 @@ export interface IStonksly extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  removeLiquidity(
+    _amount: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   revertPurchase(
     _requestId: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -303,6 +341,8 @@ export interface IStonksly extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
+    addLiquidity(overrides?: CallOverrides): Promise<void>;
+
     createSToken(
       _name: PromiseOrValue<string>,
       _symbol: PromiseOrValue<string>,
@@ -340,6 +380,11 @@ export interface IStonksly extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    removeLiquidity(
+      _amount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     revertPurchase(
       _requestId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -366,6 +411,10 @@ export interface IStonksly extends BaseContract {
   filters: {};
 
   estimateGas: {
+    addLiquidity(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     createSToken(
       _name: PromiseOrValue<string>,
       _symbol: PromiseOrValue<string>,
@@ -403,6 +452,11 @@ export interface IStonksly extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    removeLiquidity(
+      _amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     revertPurchase(
       _requestId: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -429,6 +483,10 @@ export interface IStonksly extends BaseContract {
   };
 
   populateTransaction: {
+    addLiquidity(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
     createSToken(
       _name: PromiseOrValue<string>,
       _symbol: PromiseOrValue<string>,
@@ -462,6 +520,11 @@ export interface IStonksly extends BaseContract {
 
     initSale(
       _sToken: PromiseOrValue<string>,
+      _amount: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    removeLiquidity(
       _amount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;

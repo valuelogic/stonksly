@@ -11,6 +11,13 @@ import type {
 
 const _abi = [
   {
+    inputs: [],
+    name: "addLiquidity",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "string",
@@ -122,6 +129,19 @@ const _abi = [
       },
     ],
     name: "initSale",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_amount",
+        type: "uint256",
+      },
+    ],
+    name: "removeLiquidity",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
