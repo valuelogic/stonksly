@@ -4,15 +4,16 @@ import verify from "../utils/verify";
 
 const deploy = async (hre: HardhatRuntimeEnvironment) => {
   const { deployments, getNamedAccounts, network } = hre;
-  const { deploy } = deployments;
+  const { deploy, get } = deployments;
   const { deployer } = await getNamedAccounts();
 
   const chainId = network.config.chainId!;
 
   const stonkslyWallet = networkConfig[chainId].stonkslyWallet;
   const maticPriceFeed = networkConfig[chainId].maticPriceFeed;
+  const sTokenManager = await get("STokenManager");
 
-  const args = [stonkslyWallet, maticPriceFeed];
+  const args = [stonkslyWallet, maticPriceFeed, sTokenManager.address];
 
   const stonksly = await deploy("Stonksly", {
     from: deployer,
@@ -24,8 +25,6 @@ const deploy = async (hre: HardhatRuntimeEnvironment) => {
   if (chainId !== 31337) {
     await verify(stonksly.address, args);
   }
-
-
 };
 
 export default deploy;

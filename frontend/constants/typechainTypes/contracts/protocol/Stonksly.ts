@@ -28,6 +28,33 @@ import type {
   PromiseOrValue,
 } from "../../common";
 
+export declare namespace IStonksly {
+  export type RequestStruct = {
+    requestType: PromiseOrValue<BigNumberish>;
+    status: PromiseOrValue<BigNumberish>;
+    account: PromiseOrValue<string>;
+    sToken: PromiseOrValue<string>;
+    amount: PromiseOrValue<BigNumberish>;
+    id: PromiseOrValue<BigNumberish>;
+  };
+
+  export type RequestStructOutput = [
+    number,
+    number,
+    string,
+    string,
+    BigNumber,
+    BigNumber
+  ] & {
+    requestType: number;
+    status: number;
+    account: string;
+    sToken: string;
+    amount: BigNumber;
+    id: BigNumber;
+  };
+}
+
 export interface StonkslyInterface extends utils.Interface {
   functions: {
     "addLiquidity()": FunctionFragment;
@@ -35,18 +62,22 @@ export interface StonkslyInterface extends utils.Interface {
     "emergencyRefund(uint256)": FunctionFragment;
     "finalizePurchase(uint256,uint256)": FunctionFragment;
     "finalizeSale(uint256,uint256)": FunctionFragment;
-    "getSTokens()": FunctionFragment;
+    "getCollectedFees()": FunctionFragment;
+    "getLiquidity(address)": FunctionFragment;
+    "getPurchaseConsumer()": FunctionFragment;
+    "getRequest(uint256)": FunctionFragment;
+    "getSaleConsumer()": FunctionFragment;
     "initPurchase(address)": FunctionFragment;
     "initSale(address,uint256)": FunctionFragment;
+    "isPurchasable(address)": FunctionFragment;
     "owner()": FunctionFragment;
     "removeLiquidity(uint256)": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
-    "revertPurchase(uint256)": FunctionFragment;
-    "revertSale(uint256)": FunctionFragment;
-    "s_requests(uint256)": FunctionFragment;
     "setPurchaseConsumer(address)": FunctionFragment;
     "setSaleConsumer(address)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
+    "undoPurchase(uint256)": FunctionFragment;
+    "undoSale(uint256)": FunctionFragment;
     "withdrawFees()": FunctionFragment;
   };
 
@@ -57,18 +88,22 @@ export interface StonkslyInterface extends utils.Interface {
       | "emergencyRefund"
       | "finalizePurchase"
       | "finalizeSale"
-      | "getSTokens"
+      | "getCollectedFees"
+      | "getLiquidity"
+      | "getPurchaseConsumer"
+      | "getRequest"
+      | "getSaleConsumer"
       | "initPurchase"
       | "initSale"
+      | "isPurchasable"
       | "owner"
       | "removeLiquidity"
       | "renounceOwnership"
-      | "revertPurchase"
-      | "revertSale"
-      | "s_requests"
       | "setPurchaseConsumer"
       | "setSaleConsumer"
       | "transferOwnership"
+      | "undoPurchase"
+      | "undoSale"
       | "withdrawFees"
   ): FunctionFragment;
 
@@ -97,7 +132,23 @@ export interface StonkslyInterface extends utils.Interface {
     values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
-    functionFragment: "getSTokens",
+    functionFragment: "getCollectedFees",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getLiquidity",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getPurchaseConsumer",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getRequest",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getSaleConsumer",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -108,6 +159,10 @@ export interface StonkslyInterface extends utils.Interface {
     functionFragment: "initSale",
     values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
+  encodeFunctionData(
+    functionFragment: "isPurchasable",
+    values: [PromiseOrValue<string>]
+  ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "removeLiquidity",
@@ -116,18 +171,6 @@ export interface StonkslyInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "renounceOwnership",
     values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "revertPurchase",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "revertSale",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "s_requests",
-    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "setPurchaseConsumer",
@@ -140,6 +183,14 @@ export interface StonkslyInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "transferOwnership",
     values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "undoPurchase",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "undoSale",
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawFees",
@@ -166,12 +217,32 @@ export interface StonkslyInterface extends utils.Interface {
     functionFragment: "finalizeSale",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "getSTokens", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getCollectedFees",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getLiquidity",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getPurchaseConsumer",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "getRequest", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getSaleConsumer",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "initPurchase",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "initSale", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "isPurchasable",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "removeLiquidity",
@@ -181,12 +252,6 @@ export interface StonkslyInterface extends utils.Interface {
     functionFragment: "renounceOwnership",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "revertPurchase",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "revertSale", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "s_requests", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setPurchaseConsumer",
     data: BytesLike
@@ -200,28 +265,43 @@ export interface StonkslyInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "undoPurchase",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "undoSale", data: BytesLike): Result;
+  decodeFunctionResult(
     functionFragment: "withdrawFees",
     data: BytesLike
   ): Result;
 
   events: {
+    "FeesCollected(uint256)": EventFragment;
     "LiquidityProvided(address,uint256)": EventFragment;
-    "LiquidityWithdrawn(address,uint256)": EventFragment;
+    "LiquidityRemoved(address,uint256)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
     "RequestCompleted(uint256,uint8,address,address,uint256,uint256)": EventFragment;
     "RequestCreated(uint256,uint8,address,address,uint256)": EventFragment;
     "RequestRefunded(uint256)": EventFragment;
-    "STokenCreated(address,string,string,string)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "FeesCollected"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LiquidityProvided"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "LiquidityWithdrawn"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "LiquidityRemoved"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RequestCompleted"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RequestCreated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RequestRefunded"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "STokenCreated"): EventFragment;
 }
+
+export interface FeesCollectedEventObject {
+  amount: BigNumber;
+}
+export type FeesCollectedEvent = TypedEvent<
+  [BigNumber],
+  FeesCollectedEventObject
+>;
+
+export type FeesCollectedEventFilter = TypedEventFilter<FeesCollectedEvent>;
 
 export interface LiquidityProvidedEventObject {
   who: string;
@@ -235,17 +315,17 @@ export type LiquidityProvidedEvent = TypedEvent<
 export type LiquidityProvidedEventFilter =
   TypedEventFilter<LiquidityProvidedEvent>;
 
-export interface LiquidityWithdrawnEventObject {
+export interface LiquidityRemovedEventObject {
   who: string;
   amount: BigNumber;
 }
-export type LiquidityWithdrawnEvent = TypedEvent<
+export type LiquidityRemovedEvent = TypedEvent<
   [string, BigNumber],
-  LiquidityWithdrawnEventObject
+  LiquidityRemovedEventObject
 >;
 
-export type LiquidityWithdrawnEventFilter =
-  TypedEventFilter<LiquidityWithdrawnEvent>;
+export type LiquidityRemovedEventFilter =
+  TypedEventFilter<LiquidityRemovedEvent>;
 
 export interface OwnershipTransferredEventObject {
   previousOwner: string;
@@ -298,19 +378,6 @@ export type RequestRefundedEvent = TypedEvent<
 >;
 
 export type RequestRefundedEventFilter = TypedEventFilter<RequestRefundedEvent>;
-
-export interface STokenCreatedEventObject {
-  token: string;
-  name: string;
-  symbol: string;
-  assetSymol: string;
-}
-export type STokenCreatedEvent = TypedEvent<
-  [string, string, string, string],
-  STokenCreatedEventObject
->;
-
-export type STokenCreatedEventFilter = TypedEventFilter<STokenCreatedEvent>;
 
 export interface Stonksly extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -367,7 +434,21 @@ export interface Stonksly extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    getSTokens(overrides?: CallOverrides): Promise<[string[]]>;
+    getCollectedFees(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    getLiquidity(
+      _provider: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    getPurchaseConsumer(overrides?: CallOverrides): Promise<[string]>;
+
+    getRequest(
+      _id: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[IStonksly.RequestStructOutput]>;
+
+    getSaleConsumer(overrides?: CallOverrides): Promise<[string]>;
 
     initPurchase(
       _sToken: PromiseOrValue<string>,
@@ -380,6 +461,11 @@ export interface Stonksly extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    isPurchasable(
+      _sToken: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
     owner(overrides?: CallOverrides): Promise<[string]>;
 
     removeLiquidity(
@@ -390,30 +476,6 @@ export interface Stonksly extends BaseContract {
     renounceOwnership(
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
-
-    revertPurchase(
-      _requestId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    revertSale(
-      _requestId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    s_requests(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<
-      [number, number, string, string, BigNumber, BigNumber] & {
-        requestType: number;
-        status: number;
-        account: string;
-        sToken: string;
-        amount: BigNumber;
-        id: BigNumber;
-      }
-    >;
 
     setPurchaseConsumer(
       _purchaseConsumer: PromiseOrValue<string>,
@@ -427,6 +489,16 @@ export interface Stonksly extends BaseContract {
 
     transferOwnership(
       newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    undoPurchase(
+      _requestId: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    undoSale(
+      _requestId: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -463,7 +535,21 @@ export interface Stonksly extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  getSTokens(overrides?: CallOverrides): Promise<string[]>;
+  getCollectedFees(overrides?: CallOverrides): Promise<BigNumber>;
+
+  getLiquidity(
+    _provider: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  getPurchaseConsumer(overrides?: CallOverrides): Promise<string>;
+
+  getRequest(
+    _id: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<IStonksly.RequestStructOutput>;
+
+  getSaleConsumer(overrides?: CallOverrides): Promise<string>;
 
   initPurchase(
     _sToken: PromiseOrValue<string>,
@@ -476,6 +562,11 @@ export interface Stonksly extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  isPurchasable(
+    _sToken: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
   owner(overrides?: CallOverrides): Promise<string>;
 
   removeLiquidity(
@@ -486,30 +577,6 @@ export interface Stonksly extends BaseContract {
   renounceOwnership(
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
-
-  revertPurchase(
-    _requestId: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  revertSale(
-    _requestId: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  s_requests(
-    arg0: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<
-    [number, number, string, string, BigNumber, BigNumber] & {
-      requestType: number;
-      status: number;
-      account: string;
-      sToken: string;
-      amount: BigNumber;
-      id: BigNumber;
-    }
-  >;
 
   setPurchaseConsumer(
     _purchaseConsumer: PromiseOrValue<string>,
@@ -523,6 +590,16 @@ export interface Stonksly extends BaseContract {
 
   transferOwnership(
     newOwner: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  undoPurchase(
+    _requestId: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  undoSale(
+    _requestId: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -557,7 +634,21 @@ export interface Stonksly extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    getSTokens(overrides?: CallOverrides): Promise<string[]>;
+    getCollectedFees(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getLiquidity(
+      _provider: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getPurchaseConsumer(overrides?: CallOverrides): Promise<string>;
+
+    getRequest(
+      _id: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<IStonksly.RequestStructOutput>;
+
+    getSaleConsumer(overrides?: CallOverrides): Promise<string>;
 
     initPurchase(
       _sToken: PromiseOrValue<string>,
@@ -570,6 +661,11 @@ export interface Stonksly extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    isPurchasable(
+      _sToken: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
     owner(overrides?: CallOverrides): Promise<string>;
 
     removeLiquidity(
@@ -578,30 +674,6 @@ export interface Stonksly extends BaseContract {
     ): Promise<void>;
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
-
-    revertPurchase(
-      _requestId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    revertSale(
-      _requestId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    s_requests(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<
-      [number, number, string, string, BigNumber, BigNumber] & {
-        requestType: number;
-        status: number;
-        account: string;
-        sToken: string;
-        amount: BigNumber;
-        id: BigNumber;
-      }
-    >;
 
     setPurchaseConsumer(
       _purchaseConsumer: PromiseOrValue<string>,
@@ -618,24 +690,34 @@ export interface Stonksly extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    undoPurchase(
+      _requestId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    undoSale(
+      _requestId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     withdrawFees(overrides?: CallOverrides): Promise<void>;
   };
 
   filters: {
+    "FeesCollected(uint256)"(amount?: null): FeesCollectedEventFilter;
+    FeesCollected(amount?: null): FeesCollectedEventFilter;
+
     "LiquidityProvided(address,uint256)"(
       who?: null,
       amount?: null
     ): LiquidityProvidedEventFilter;
     LiquidityProvided(who?: null, amount?: null): LiquidityProvidedEventFilter;
 
-    "LiquidityWithdrawn(address,uint256)"(
+    "LiquidityRemoved(address,uint256)"(
       who?: null,
       amount?: null
-    ): LiquidityWithdrawnEventFilter;
-    LiquidityWithdrawn(
-      who?: null,
-      amount?: null
-    ): LiquidityWithdrawnEventFilter;
+    ): LiquidityRemovedEventFilter;
+    LiquidityRemoved(who?: null, amount?: null): LiquidityRemovedEventFilter;
 
     "OwnershipTransferred(address,address)"(
       previousOwner?: PromiseOrValue<string> | null,
@@ -680,19 +762,6 @@ export interface Stonksly extends BaseContract {
 
     "RequestRefunded(uint256)"(id?: null): RequestRefundedEventFilter;
     RequestRefunded(id?: null): RequestRefundedEventFilter;
-
-    "STokenCreated(address,string,string,string)"(
-      token?: null,
-      name?: null,
-      symbol?: null,
-      assetSymol?: null
-    ): STokenCreatedEventFilter;
-    STokenCreated(
-      token?: null,
-      name?: null,
-      symbol?: null,
-      assetSymol?: null
-    ): STokenCreatedEventFilter;
   };
 
   estimateGas: {
@@ -724,7 +793,21 @@ export interface Stonksly extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    getSTokens(overrides?: CallOverrides): Promise<BigNumber>;
+    getCollectedFees(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getLiquidity(
+      _provider: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getPurchaseConsumer(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getRequest(
+      _id: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getSaleConsumer(overrides?: CallOverrides): Promise<BigNumber>;
 
     initPurchase(
       _sToken: PromiseOrValue<string>,
@@ -737,6 +820,11 @@ export interface Stonksly extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    isPurchasable(
+      _sToken: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     removeLiquidity(
@@ -746,21 +834,6 @@ export interface Stonksly extends BaseContract {
 
     renounceOwnership(
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    revertPurchase(
-      _requestId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    revertSale(
-      _requestId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    s_requests(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     setPurchaseConsumer(
@@ -775,6 +848,16 @@ export interface Stonksly extends BaseContract {
 
     transferOwnership(
       newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    undoPurchase(
+      _requestId: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    undoSale(
+      _requestId: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -812,7 +895,23 @@ export interface Stonksly extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    getSTokens(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    getCollectedFees(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getLiquidity(
+      _provider: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getPurchaseConsumer(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getRequest(
+      _id: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getSaleConsumer(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     initPurchase(
       _sToken: PromiseOrValue<string>,
@@ -825,6 +924,11 @@ export interface Stonksly extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
+    isPurchasable(
+      _sToken: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     removeLiquidity(
@@ -834,21 +938,6 @@ export interface Stonksly extends BaseContract {
 
     renounceOwnership(
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    revertPurchase(
-      _requestId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    revertSale(
-      _requestId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    s_requests(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     setPurchaseConsumer(
@@ -863,6 +952,16 @@ export interface Stonksly extends BaseContract {
 
     transferOwnership(
       newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    undoPurchase(
+      _requestId: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    undoSale(
+      _requestId: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
