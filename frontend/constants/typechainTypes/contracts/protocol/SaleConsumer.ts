@@ -58,9 +58,10 @@ export interface SaleConsumerInterface extends utils.Interface {
   functions: {
     "estimateCost((uint8,uint8,uint8,string,bytes,string[]),uint64,uint32,uint256)": FunctionFragment;
     "getDONPublicKey()": FunctionFragment;
+    "getRequest(bytes32)": FunctionFragment;
+    "getStonskly()": FunctionFragment;
+    "getSubscriptionId()": FunctionFragment;
     "handleOracleFulfillment(bytes32,bytes,bytes)": FunctionFragment;
-    "i_stonksly()": FunctionFragment;
-    "i_subscriptionId()": FunctionFragment;
     "init(uint256,string[])": FunctionFragment;
   };
 
@@ -68,9 +69,10 @@ export interface SaleConsumerInterface extends utils.Interface {
     nameOrSignatureOrTopic:
       | "estimateCost"
       | "getDONPublicKey"
+      | "getRequest"
+      | "getStonskly"
+      | "getSubscriptionId"
       | "handleOracleFulfillment"
-      | "i_stonksly"
-      | "i_subscriptionId"
       | "init"
   ): FunctionFragment;
 
@@ -88,20 +90,24 @@ export interface SaleConsumerInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "getRequest",
+    values: [PromiseOrValue<BytesLike>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getStonskly",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getSubscriptionId",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "handleOracleFulfillment",
     values: [
       PromiseOrValue<BytesLike>,
       PromiseOrValue<BytesLike>,
       PromiseOrValue<BytesLike>
     ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "i_stonksly",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "i_subscriptionId",
-    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "init",
@@ -116,13 +122,17 @@ export interface SaleConsumerInterface extends utils.Interface {
     functionFragment: "getDONPublicKey",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "getRequest", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "handleOracleFulfillment",
+    functionFragment: "getStonskly",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "i_stonksly", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "i_subscriptionId",
+    functionFragment: "getSubscriptionId",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "handleOracleFulfillment",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "init", data: BytesLike): Result;
@@ -233,16 +243,21 @@ export interface SaleConsumer extends BaseContract {
 
     getDONPublicKey(overrides?: CallOverrides): Promise<[string]>;
 
+    getRequest(
+      _requestId: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    getStonskly(overrides?: CallOverrides): Promise<[string]>;
+
+    getSubscriptionId(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     handleOracleFulfillment(
       requestId: PromiseOrValue<BytesLike>,
       response: PromiseOrValue<BytesLike>,
       err: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
-
-    i_stonksly(overrides?: CallOverrides): Promise<[string]>;
-
-    i_subscriptionId(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     init(
       _stonkslyRequestId: PromiseOrValue<BigNumberish>,
@@ -261,16 +276,21 @@ export interface SaleConsumer extends BaseContract {
 
   getDONPublicKey(overrides?: CallOverrides): Promise<string>;
 
+  getRequest(
+    _requestId: PromiseOrValue<BytesLike>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  getStonskly(overrides?: CallOverrides): Promise<string>;
+
+  getSubscriptionId(overrides?: CallOverrides): Promise<BigNumber>;
+
   handleOracleFulfillment(
     requestId: PromiseOrValue<BytesLike>,
     response: PromiseOrValue<BytesLike>,
     err: PromiseOrValue<BytesLike>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
-
-  i_stonksly(overrides?: CallOverrides): Promise<string>;
-
-  i_subscriptionId(overrides?: CallOverrides): Promise<BigNumber>;
 
   init(
     _stonkslyRequestId: PromiseOrValue<BigNumberish>,
@@ -289,16 +309,21 @@ export interface SaleConsumer extends BaseContract {
 
     getDONPublicKey(overrides?: CallOverrides): Promise<string>;
 
+    getRequest(
+      _requestId: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getStonskly(overrides?: CallOverrides): Promise<string>;
+
+    getSubscriptionId(overrides?: CallOverrides): Promise<BigNumber>;
+
     handleOracleFulfillment(
       requestId: PromiseOrValue<BytesLike>,
       response: PromiseOrValue<BytesLike>,
       err: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    i_stonksly(overrides?: CallOverrides): Promise<string>;
-
-    i_subscriptionId(overrides?: CallOverrides): Promise<BigNumber>;
 
     init(
       _stonkslyRequestId: PromiseOrValue<BigNumberish>,
@@ -361,16 +386,21 @@ export interface SaleConsumer extends BaseContract {
 
     getDONPublicKey(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getRequest(
+      _requestId: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getStonskly(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getSubscriptionId(overrides?: CallOverrides): Promise<BigNumber>;
+
     handleOracleFulfillment(
       requestId: PromiseOrValue<BytesLike>,
       response: PromiseOrValue<BytesLike>,
       err: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
-
-    i_stonksly(overrides?: CallOverrides): Promise<BigNumber>;
-
-    i_subscriptionId(overrides?: CallOverrides): Promise<BigNumber>;
 
     init(
       _stonkslyRequestId: PromiseOrValue<BigNumberish>,
@@ -390,16 +420,21 @@ export interface SaleConsumer extends BaseContract {
 
     getDONPublicKey(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    getRequest(
+      _requestId: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getStonskly(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getSubscriptionId(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     handleOracleFulfillment(
       requestId: PromiseOrValue<BytesLike>,
       response: PromiseOrValue<BytesLike>,
       err: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
-
-    i_stonksly(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    i_subscriptionId(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     init(
       _stonkslyRequestId: PromiseOrValue<BigNumberish>,

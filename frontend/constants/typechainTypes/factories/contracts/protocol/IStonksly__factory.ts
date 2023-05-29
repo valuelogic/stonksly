@@ -91,12 +91,108 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "getSTokens",
+    name: "getCollectedFees",
     outputs: [
       {
-        internalType: "address[]",
+        internalType: "uint256",
         name: "",
-        type: "address[]",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_provider",
+        type: "address",
+      },
+    ],
+    name: "getLiquidity",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getPurchaseConsumer",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_id",
+        type: "uint256",
+      },
+    ],
+    name: "getRequest",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "enum IStonksly.RequestType",
+            name: "requestType",
+            type: "uint8",
+          },
+          {
+            internalType: "enum IStonksly.RequestStatus",
+            name: "status",
+            type: "uint8",
+          },
+          {
+            internalType: "address",
+            name: "account",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "sToken",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "amount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "id",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct IStonksly.Request",
+        name: "",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getSaleConsumer",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
       },
     ],
     stateMutability: "view",
@@ -136,38 +232,31 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "address",
+        name: "_sToken",
+        type: "address",
+      },
+    ],
+    name: "isPurchasable",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "uint256",
         name: "_amount",
         type: "uint256",
       },
     ],
     name: "removeLiquidity",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "_requestId",
-        type: "uint256",
-      },
-    ],
-    name: "revertPurchase",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "_requestId",
-        type: "uint256",
-      },
-    ],
-    name: "revertSale",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -194,6 +283,32 @@ const _abi = [
       },
     ],
     name: "setSaleConsumer",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_requestId",
+        type: "uint256",
+      },
+    ],
+    name: "undoPurchase",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_requestId",
+        type: "uint256",
+      },
+    ],
+    name: "undoSale",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

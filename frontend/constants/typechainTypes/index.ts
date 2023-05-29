@@ -40,5 +40,7 @@ export type { SaleConsumer } from "./contracts/protocol/SaleConsumer";
 export { SaleConsumer__factory } from "./factories/contracts/protocol/SaleConsumer__factory";
 export type { SToken } from "./contracts/protocol/SToken";
 export { SToken__factory } from "./factories/contracts/protocol/SToken__factory";
+export type { STokenManager } from "./contracts/protocol/STokenManager";
+export { STokenManager__factory } from "./factories/contracts/protocol/STokenManager__factory";
 export type { Stonksly } from "./contracts/protocol/Stonksly";
 export { Stonksly__factory } from "./factories/contracts/protocol/Stonksly__factory";

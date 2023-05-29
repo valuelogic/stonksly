@@ -1,5 +1,6 @@
 import { ethers } from "hardhat";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { Stonksly } from "../typechain-types/contracts/protocol/Stonksly";
 
 const setUp = async (hre: HardhatRuntimeEnvironment) => {
   const { deployments } = hre;
@@ -7,7 +8,7 @@ const setUp = async (hre: HardhatRuntimeEnvironment) => {
 
   log("Setting up consumers...");
 
-  const stonksly = await ethers.getContract("Stonksly");
+  const stonksly = (await ethers.getContract("Stonksly")) as Stonksly;
   const purchaseConsumer = await ethers.getContract("PurchaseConsumer");
   const saleConsumer = await ethers.getContract("SaleConsumer");
 
@@ -23,5 +24,3 @@ const setUp = async (hre: HardhatRuntimeEnvironment) => {
 };
 
 export default setUp;
-
-setUp.tags = ["setup"]
