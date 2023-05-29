@@ -1,21 +1,33 @@
 import { ChangeEvent, useState } from 'react'
+import { readContract, writeContract, fetchBalance, waitForTransaction } from '@wagmi/core'
+import { utils } from 'ethers'
+import { BigNumber } from 'ethers'
 import { useForm, Controller, SubmitHandler } from 'react-hook-form'
 import { v4 as uuidv4 } from 'uuid'
+import { parseEther } from 'viem'
+import { useAccount, useBalance, useContractEvent, useContractWrite, useNetwork } from 'wagmi'
 import { Box, Button, FormControl, FormLabel } from '@chakra-ui/react'
 import { Input } from '@chakra-ui/react'
 import { Select } from '@chakra-ui/react'
-import { ITicker } from '@/mocks/tickers'
-
-interface IFormInputs {
-  token: string
-  maticAmount: number
-  tokenAmount: number
-  fee: number
-}
+import StonkslyAbi from '../constants/abi/stonksly.json'
+import contractAddresses from '../constants/contractsAddresses.json'
+import stokenAbi from '../sToken.json'
+import { IContractAddresses, IFormInputs, ITicker } from '@/types/types'
 
 const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
   const [buyMode, setMode] = useState<boolean>(true)
   const [fee, setFee] = useState<number>(0)
+  const { chain } = useNetwork()
+  const { address } = useAccount()
+  const addresses: IContractAddresses = contractAddresses
+  const chainId = chain?.id
+  const stonkslyContractAddress =
+    chainId && chainId in addresses ? addresses[chainId]['Stonksly'] : ''
+
+  const { data: maticBalance } = useBalance({
+    address: address,
+    watch: true
+  })
 
   const {
     reset,
@@ -33,9 +45,95 @@ const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
     }
   })
 
+  const getAllowance = async (tokenContractAddress: string) => {
+    try {
+      const allowanceAmount = await readContract({
+        // @ts-ignore
+        address: tokenContractAddress || '',
+        abi: stokenAbi,
+        functionName: 'allowance',
+        args: [address, stonkslyContractAddress]
+      })
+      return allowanceAmount as BigNumber
+    } catch (error) {
+      return
+    }
+  }
+
+  const { write: writeBuy } = useContractWrite({
+    // @ts-ignore
+    address: stonkslyContractAddress,
+    abi: StonkslyAbi,
+    functionName: 'initPurchase',
+    onSuccess(data) {
+      reset()
+      setFee(0)
+    },
+    onError(error) {
+      console.log('error writeBuy', error)
+    }
+  })
+
+  const { write: writeSell } = useContractWrite({
+    // @ts-ignore
+    address: stonkslyContractAddress,
+    abi: StonkslyAbi,
+    functionName: 'initSale',
+    onSuccess(data) {
+      reset()
+      setFee(0)
+    },
+    onError(error) {
+      console.log('error writeSell', error)
+    }
+  })
+  useContractEvent({
+    // @ts-ignore
+    address: stonkslyContractAddress,
+    abi: StonkslyAbi,
+    eventName: 'RequestCompleted',
+    listener(log) {
+      console.log(log)
+    }
+  })
+
   const onSubmit: SubmitHandler<IFormInputs> = async (data) => {
-    console.log('data to submit', data)
-    console.log('fee', fee)
+    const token = tickersData.find((ticker) => ticker.name === data.token)
+    if (!token?.sTokenAddress) return
+    if (buyMode) {
+      writeBuy?.({
+        value: parseEther(`${data.maticAmount}`),
+        args: [token.sTokenAddress]
+      })
+    } else {
+      const allowanceAmount = await getAllowance(token.sTokenAddress)
+      if (allowanceAmount === undefined) return
+      const formattedAlowance = Number(utils.formatEther(allowanceAmount))
+      if (formattedAlowance === 0 || formattedAlowance < Number(data.tokenAmount)) {
+        try {
+          const { hash } = await writeContract({
+            // @ts-ignore
+            address: token.sTokenAddress || '',
+            abi: stokenAbi,
+            functionName: 'approve',
+            args: [stonkslyContractAddress, utils.parseEther(data.maticAmount.toString())]
+          })
+          await waitForTransaction({
+            hash
+          })
+
+          writeSell?.({
+            args: [token.sTokenAddress, utils.parseEther(data.tokenAmount.toString())]
+          })
+        } catch (error) {
+          console.log('error', error)
+        }
+      } else {
+        writeSell?.({
+          args: [token.sTokenAddress, utils.parseEther(data.tokenAmount.toString())]
+        })
+      }
+    }
   }
 
   const handleMaticAmountChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -86,6 +184,44 @@ const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
     setFee(0)
   }
 
+  const handleMaxMaticClick = () => {
+    if (!maticBalance) return
+    const maticAmount = Number(maticBalance.formatted)
+    setValue('maticAmount', maticAmount)
+    const chosenToken = getValues('token')
+    const token = tickersData.find((ticker) => ticker.name === chosenToken)
+    if (!token?.priceMatic) return
+    const fee = maticAmount * 0.01
+    const maticForToken = maticAmount * 0.99
+    const tokenAmountForMatic = maticForToken / token.priceMatic
+    setFee(fee)
+    setValue('tokenAmount', tokenAmountForMatic)
+  }
+
+  const handleMaxTokenClick = async () => {
+    const chosenToken = getValues('token')
+    const token = tickersData.find((ticker) => ticker.name === chosenToken)
+    if (!token?.sTokenAddress || !token?.priceMatic) return
+    try {
+      const balance = await fetchBalance({
+        //@ts-ignore
+        address: address,
+        //@ts-ignore
+        token: token.sTokenAddress
+      })
+
+      if (balance) {
+        const tokenAmount = Number(balance.formatted)
+        setValue('tokenAmount', tokenAmount)
+        const maticAmountForToken = tokenAmount * token.priceMatic
+        const fee = maticAmountForToken * 0.01
+        const maticForToken = maticAmountForToken * 0.99
+        setValue('maticAmount', maticForToken)
+        setFee(fee)
+      }
+    } catch (e) {}
+  }
+
   return (
     <Box>
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -100,6 +236,7 @@ const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
               onChange={handleMaticAmountChange}
             />
           </FormControl>
+          {buyMode && <Button onClick={handleMaxMaticClick}>Max</Button>}
           {errors.maticAmount?.type === 'required' && (
             <Box style={{ color: 'red', marginBottom: '20px' }}>Matic amount is required.</Box>
           )}
@@ -138,6 +275,7 @@ const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
               onChange={handleTokenAmountChange}
             />
           </FormControl>
+          {!buyMode && <Button onClick={handleMaxTokenClick}>Max</Button>}
           {errors.tokenAmount?.type === 'required' && (
             <Box style={{ color: 'red', marginBottom: '20px' }}>Token amount is required.</Box>
           )}
