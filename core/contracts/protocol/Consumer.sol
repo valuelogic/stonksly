@@ -5,12 +5,14 @@ import "./IStonksly.sol";
 import "./IConsumer.sol";
 import {Functions, FunctionsClient} from "../functions/FunctionClient.sol";
 
+// error Consumer__SenderNotAllowed(address sender);
+
 abstract contract Consumer is IConsumer, FunctionsClient {
     using Functions for Functions.Request;
 
-    IStonksly public immutable i_stonksly;
-    uint64 public immutable i_subscriptionId;
-    string internal s_requestSource;
+    IStonksly immutable i_stonksly;
+    uint64 immutable i_subscriptionId;
+    string s_requestSource;
 
     mapping(bytes32 => uint256) internal s_requests;
 
@@ -37,6 +39,10 @@ abstract contract Consumer is IConsumer, FunctionsClient {
         uint256 _stonkslyRequestId,
         string[] calldata args
     ) external override {
+        //Only stonksly can invoke this method
+        // if(msg.sender != address(i_stonksly)) {
+        //     revert Consumer__SenderNotAllowed(msg.sender);
+        // }
         Functions.Request memory req;
         req.initializeRequest(
             Functions.Location.Inline,
@@ -49,5 +55,17 @@ abstract contract Consumer is IConsumer, FunctionsClient {
         s_requests[requestId] = _stonkslyRequestId;
 
         emit OracleRequestSent(requestId, _stonkslyRequestId);
+    }
+
+    function getStonskly() external view returns (address) {
+        return address(i_stonksly);
+    }
+
+    function getSubscriptionId() external view returns (uint64) {
+        return i_subscriptionId;
+    }
+
+    function getRequest(bytes32 _requestId) external view returns (uint256) {
+        return s_requests[_requestId];
     }
 }

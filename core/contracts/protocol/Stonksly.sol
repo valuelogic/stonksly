@@ -4,59 +4,34 @@ pragma solidity 0.8.18;
 import "./IConsumer.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
-import "./SToken.sol";
+import "./STokenManager.sol";
 import "./IStonksly.sol";
 
 error Stonksly__NotAllowedCall(address who);
 error Stonksly__TransferFailed(address account, uint256 amount);
-error Stonksly_RequestAlreadyProcessed(uint256 id);
+error Stonksly_RequestIsNotPending(uint256 id);
 error Stonksly_ConsumerAlreadySet();
 error Stonksly__NotEnoughtLiquidityProvided();
-error Stonklsy__STokenNotExists(address sToken);
+error Stonksly__STokenNotRegistered(address sToken);
 error Stonksly__RequestNotExists(uint256 requestId);
 error Stonksly__NotTheRequestOwner(address who, address requestOwner);
+error Stonksly__InvestmentRequired();
 
 contract Stonksly is IStonksly, Ownable {
-    enum RequestType {
-        PURCHASE,
-        SALE
-    }
-
-    enum RequestStatus {
-        NONE,
-        PENDING,
-        COMPLETED,
-        REFUNDED
-    }
-
-    struct Request {
-        RequestType requestType;
-        RequestStatus status;
-        address account;
-        address sToken;
-        uint256 amount;
-        uint256 id;
-    }
-
-    address s_stonkslyWallet;
-    IConsumer s_purchaseConsumer;
-    IConsumer s_saleConsumer;
+    address immutable s_stonkslyWallet;
     AggregatorV3Interface immutable s_priceFeed;
+    STokenManager immutable s_sTokenManager;
 
-    uint256 s_collectedFees;
-    uint256 s_idCounter;
+    IConsumer private s_purchaseConsumer;
+    IConsumer private s_saleConsumer;
 
-    address[] s_sTokensAddresses;
-    mapping(address => bool) s_sTokens;
-    mapping(uint256 => Request) public s_requests;
-    mapping(address => uint256) s_liquidityProviders;
+    uint256 private s_collectedFees;
+    uint256 private s_idCounter;
 
-    event STokenCreated(
-        address token,
-        string name,
-        string symbol,
-        string assetSymol
-    );
+    address[] private s_sTokensAddresses;
+    mapping(address => bool) private s_sTokens;
+    mapping(uint256 => Request) private s_requests;
+    mapping(address => uint256) private s_liquidityProviders;
 
     event RequestCreated(
         uint256 id,
@@ -78,11 +53,18 @@ contract Stonksly is IStonksly, Ownable {
     event RequestRefunded(uint256 id);
 
     event LiquidityProvided(address who, uint256 amount);
-    event LiquidityWithdrawn(address who, uint256 amount);
+    event LiquidityRemoved(address who, uint256 amount);
 
-    constructor(address _stonkslyWallet, AggregatorV3Interface _priceFeed) {
+    event FeesCollected(uint256 amount);
+
+    constructor(
+        address _stonkslyWallet,
+        AggregatorV3Interface _priceFeed,
+        STokenManager _sTokenManager
+    ) {
         s_stonkslyWallet = _stonkslyWallet;
         s_priceFeed = _priceFeed;
+        s_sTokenManager = _sTokenManager;
     }
 
     function createSToken(
@@ -90,15 +72,19 @@ contract Stonksly is IStonksly, Ownable {
         string memory _symbol,
         string memory _assetSymbol
     ) external onlyOwner {
-        address sToken = address(new SToken(_name, _symbol, _assetSymbol));
+        address sToken = s_sTokenManager.deploySToken(
+            _name,
+            _symbol,
+            _assetSymbol
+        );
         s_sTokens[sToken] = true;
-        s_sTokensAddresses.push(sToken);
-
-        emit STokenCreated(sToken, _name, _symbol, _assetSymbol);
     }
 
     function initPurchase(address _sToken) external payable {
-        checkIfSTokenExists(_sToken);
+        if (msg.value == 0) {
+            revert Stonksly__InvestmentRequired();
+        }
+        checkIfSTokenRegistered(_sToken);
         uint256 id = s_idCounter++;
         Request memory request = Request(
             RequestType.PURCHASE,
@@ -125,6 +111,7 @@ contract Stonksly is IStonksly, Ownable {
         );
     }
 
+    //sprawdzić czy purchase request
     function finalizePurchase(
         uint256 _requestId,
         uint256 _assetPrice
@@ -142,7 +129,7 @@ contract Stonksly is IStonksly, Ownable {
         uint256 normalizedMaticPrice = uint256(price) * 1e10;
 
         //0,1% fee
-        uint256 afterCharge = ((request.amount * 99) / 100);
+        uint256 afterCharge = ((request.amount * 999) / 1000);
         s_collectedFees += request.amount - afterCharge;
 
         uint256 valueInUsd = (afterCharge * normalizedMaticPrice) / 1e18;
@@ -163,7 +150,7 @@ contract Stonksly is IStonksly, Ownable {
         );
     }
 
-    function revertPurchase(uint256 _requestId) external {
+    function undoPurchase(uint256 _requestId) external {
         checkIfAllowed(address(s_purchaseConsumer));
         Request memory request = s_requests[_requestId];
 
@@ -179,7 +166,10 @@ contract Stonksly is IStonksly, Ownable {
 
     //_sToken needs to be approved first
     function initSale(address _sToken, uint256 _amount) external {
-        checkIfSTokenExists(_sToken);
+        if (_amount == 0) {
+            revert Stonksly__InvestmentRequired();
+        }
+        checkIfSTokenRegistered(_sToken);
         uint256 id = s_idCounter++;
         Request memory request = Request(
             RequestType.SALE,
@@ -238,7 +228,9 @@ contract Stonksly is IStonksly, Ownable {
         );
     }
 
-    function revertSale(uint256 _requestId) external {
+
+
+    function undoSale(uint256 _requestId) external {
         checkIfAllowed(address(s_saleConsumer));
         Request memory request = s_requests[_requestId];
 
@@ -285,13 +277,13 @@ contract Stonksly is IStonksly, Ownable {
     }
 
     function withdrawFees() external {
-        checkIfAllowed(s_stonkslyWallet);
         uint256 toWithdraw = s_collectedFees;
         s_collectedFees = 0;
         sendMatic(s_stonkslyWallet, toWithdraw);
+        emit FeesCollected(toWithdraw);
     }
 
-    //To provide additional MATIC liquidity - can be rewarded in future
+    // To provide additional MATIC liquidity - can be rewarded in future
     function addLiquidity() public payable {
         s_liquidityProviders[msg.sender] += msg.value;
         emit LiquidityProvided(msg.sender, msg.value);
@@ -304,7 +296,7 @@ contract Stonksly is IStonksly, Ownable {
         s_liquidityProviders[msg.sender] -= _amount;
         sendMatic(msg.sender, _amount);
 
-        emit LiquidityWithdrawn(msg.sender, _amount);
+        emit LiquidityRemoved(msg.sender, _amount);
     }
 
     function sendMatic(address _receiver, uint256 _amount) private {
@@ -325,8 +317,38 @@ contract Stonksly is IStonksly, Ownable {
         }
     }
 
-    function getSTokens() external view returns (address[] memory) {
-        return s_sTokensAddresses;
+    function getPurchaseConsumer() external view override returns (address) {
+        return address(s_purchaseConsumer);
+    }
+
+    function getSaleConsumer() external view override returns (address) {
+        return address(s_saleConsumer);
+    }
+
+    function getCollectedFees() external view override returns (uint256) {
+        return s_collectedFees;
+    }
+
+    function isPurchasable(
+        address _sToken
+    ) external view override returns (bool) {
+        return s_sTokens[_sToken];
+    }
+
+    function getRequest(
+        uint256 _id
+    ) external view override returns (Request memory) {
+        return s_requests[_id];
+    }
+
+    function getLiquidity(
+        address _provider
+    ) external view override returns (uint256) {
+        return s_liquidityProviders[_provider];
+    }
+
+    receive() external payable {
+        addLiquidity();
     }
 
     function checkIfAllowed(address _who) private view {
@@ -335,15 +357,15 @@ contract Stonksly is IStonksly, Ownable {
         }
     }
 
-    function checkIfSTokenExists(address _sToken) private view {
+    function checkIfSTokenRegistered(address _sToken) private view {
         if (!s_sTokens[_sToken]) {
-            revert Stonklsy__STokenNotExists(_sToken);
+            revert Stonksly__STokenNotRegistered(_sToken);
         }
     }
 
     function checkIfPending(Request memory _request) private pure {
         if (_request.status != RequestStatus.PENDING) {
-            revert Stonksly_RequestAlreadyProcessed(_request.id);
+            revert Stonksly_RequestIsNotPending(_request.id);
         }
     }
 }

@@ -17,7 +17,7 @@ contract SaleConsumer is Consumer {
         bytes memory err
     ) internal override {
         if (err.length > 0) {
-            i_stonksly.revertSale(s_requests[requestId]);
+            i_stonksly.undoSale(s_requests[requestId]);
             emit RequestFailed(requestId, err);
         } else {
             uint256 price = uint256(bytes32(response));
