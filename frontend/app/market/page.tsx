@@ -5,26 +5,23 @@ import axios from 'axios'
 import { v4 as uuidv4 } from 'uuid'
 import { useNetwork, useAccount } from 'wagmi'
 import { Flex } from '@chakra-ui/react'
-import stonkslyAbi from '../../constants/abi/stonksly.json'
+import stokenmanagerAbi from '../../constants/abi/stokenmanager.json'
 import contractAddresses from '../../constants/contractsAddresses.json'
 import abi from '../../maticUsdPrice.json'
 import Exchange from '@/components/Exchange'
 import TickerBox from '@/components/TickerBox'
 import { IContractAddresses, ITicker } from '@/types/types'
 
-// TODO: get proper data instead of mock
-export const tickers: ITicker[] = [{ name: 'TSLA' }, { name: 'AAPL' }, { name: 'MSFT' }]
-
 export default function Market() {
   const [tickersData, setTickerData] = useState<ITicker[]>([])
   const [usdMaticData, setUsdMaticData] = useState(null)
-  const [sTokens, setSTokens] = useState<`0x${string}`[]>([])
+  const [sTokens, setSTokens] = useState<ITicker[]>([])
   const { isConnected } = useAccount()
   const { chain } = useNetwork()
   const addresses: IContractAddresses = contractAddresses
   const chainId = chain?.id
-  const StonkslyContractAddress =
-    chainId && chainId in addresses ? addresses[chainId]['Stonksly'] : ''
+  const STokenManagerContractAddress =
+    chainId && chainId in addresses ? addresses[chainId]['STokenManager'] : ''
 
   useEffect(() => {
     const getMaticPrice = async () => {
@@ -38,11 +35,11 @@ export default function Market() {
         setUsdMaticData(data[1])
       }
     }
-    const getTokensAddresses = async () => {
+    const getTokensData = async () => {
       const data = await readContract({
         // @ts-ignore
-        address: StonkslyContractAddress,
-        abi: stonkslyAbi,
+        address: STokenManagerContractAddress,
+        abi: stokenmanagerAbi,
         functionName: 'getSTokens',
         args: []
       })
@@ -54,13 +51,12 @@ export default function Market() {
 
     if (chain?.name === 'Polygon Mumbai') {
       getMaticPrice()
-      getTokensAddresses()
+      getTokensData()
     }
   }, [chain])
 
   useEffect(() => {
     if (usdMaticData && sTokens.length > 0) {
-      const tickersData: ITicker[] = [...tickers]
       const maticPrice = Number(usdMaticData) / 1e8
       const getActualPrice = async (name: string) => {
         try {
@@ -71,18 +67,17 @@ export default function Market() {
         } catch (e) {}
       }
       const promises = []
-      tickersData.forEach((ticker) => {
+      sTokens.forEach((ticker) => {
         try {
-          promises.push(getActualPrice(ticker.name.toLowerCase()))
+          promises.push(getActualPrice(ticker.assetSymbol.toLowerCase()))
         } catch (e) {}
       })
       Promise.all(promises).then((results) => {
-        tickersData.forEach((ticker, index) => {
+        sTokens.forEach((ticker, index) => {
           ticker.priceUSD = results[index]
           ticker.priceMatic = results[index] / maticPrice
-          ticker.sTokenAddress = sTokens[index]
         })
-        const validTickerData = tickersData.filter((tickerData) => !!tickerData.priceUSD)
+        const validTickerData = sTokens.filter((tickerData) => !!tickerData.priceUSD)
         setTickerData(validTickerData)
       })
     }

@@ -1,18 +1,17 @@
 export interface ITicker {
-  name: string
+  assetSymbol: string
+  sToken: string
+  symbol: string
   priceUSD?: number
   priceMatic?: number
-  sTokenAddress?: string
 }
-
 export interface IFormInputs {
   token: string
   maticAmount: number
   tokenAmount: number
 }
 
-
-const CONTRACTS = ['Stonksly', 'PurchaseConsumer', 'SaleConsumer'] as const
+const CONTRACTS = ['Stonksly', 'STokenManager'] as const
 type ContractName = (typeof CONTRACTS)[number]
 export interface IContractAddresses {
   [chainId: string]: Record<ContractName, string>

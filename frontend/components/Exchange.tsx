@@ -39,7 +39,7 @@ const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
     formState: { errors }
   } = useForm<IFormInputs>({
     defaultValues: {
-      token: tickersData[0].name,
+      token: tickersData[0].assetSymbol,
       maticAmount: 0,
       tokenAmount: 0
     }
@@ -98,22 +98,22 @@ const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
   })
 
   const onSubmit: SubmitHandler<IFormInputs> = async (data) => {
-    const token = tickersData.find((ticker) => ticker.name === data.token)
-    if (!token?.sTokenAddress) return
+    const token = tickersData.find((ticker) => ticker.assetSymbol === data.token)
+    if (!token?.sToken) return
     if (buyMode) {
       writeBuy?.({
         value: parseEther(`${data.maticAmount}`),
-        args: [token.sTokenAddress]
+        args: [token.sToken]
       })
     } else {
-      const allowanceAmount = await getAllowance(token.sTokenAddress)
+      const allowanceAmount = await getAllowance(token.sToken)
       if (allowanceAmount === undefined) return
       const formattedAlowance = Number(utils.formatEther(allowanceAmount))
       if (formattedAlowance === 0 || formattedAlowance < Number(data.tokenAmount)) {
         try {
           const { hash } = await writeContract({
             // @ts-ignore
-            address: token.sTokenAddress || '',
+            address: token.sToken || '',
             abi: stokenAbi,
             functionName: 'approve',
             args: [stonkslyContractAddress, utils.parseEther(data.maticAmount.toString())]
@@ -123,14 +123,14 @@ const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
           })
 
           writeSell?.({
-            args: [token.sTokenAddress, utils.parseEther(data.tokenAmount.toString())]
+            args: [token.sToken, utils.parseEther(data.tokenAmount.toString())]
           })
         } catch (error) {
           console.log('error', error)
         }
       } else {
         writeSell?.({
-          args: [token.sTokenAddress, utils.parseEther(data.tokenAmount.toString())]
+          args: [token.sToken, utils.parseEther(data.tokenAmount.toString())]
         })
       }
     }
@@ -139,28 +139,28 @@ const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
   const handleMaticAmountChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target
     const chosenToken = getValues('token')
-    const token = tickersData.find((ticker) => ticker.name === chosenToken)
+    const token = tickersData.find((ticker) => ticker.assetSymbol === chosenToken)
     if (!token?.priceMatic) return
-    const fee = Number(value) * 0.01
-    const maticForToken = Number(value) * 0.99
+    const fee = Number(value) * 0.001
+    const maticForToken = Number(value) * 0.999
     const tokenAmountForMatic = maticForToken / token.priceMatic
     setFee(fee)
     setValue('tokenAmount', tokenAmountForMatic)
   }
 
   const handleTokenSelectChange = (tokenName: string) => {
-    const token = tickersData.find((ticker) => ticker.name === tokenName)
+    const token = tickersData.find((ticker) => ticker.assetSymbol === tokenName)
     if (!token?.priceMatic) return
     if (buyMode) {
       const maticAmount = getValues('maticAmount')
-      const maticForToken = Number(maticAmount) * 0.99
+      const maticForToken = Number(maticAmount) * 0.999
       const tokenAmountForMatic = maticForToken / token.priceMatic
       setValue('tokenAmount', tokenAmountForMatic)
     } else {
       const tokenAmount = getValues('tokenAmount')
       const maticAmountForToken = Number(tokenAmount) * token.priceMatic
-      const fee = Number(maticAmountForToken) * 0.01
-      const maticForToken = Number(maticAmountForToken) * 0.99
+      const fee = Number(maticAmountForToken) * 0.001
+      const maticForToken = Number(maticAmountForToken) * 0.999
       setValue('maticAmount', maticForToken)
       setFee(fee)
     }
@@ -169,11 +169,11 @@ const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
   const handleTokenAmountChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target
     const chosenToken = getValues('token')
-    const token = tickersData.find((ticker) => ticker.name === chosenToken)
+    const token = tickersData.find((ticker) => ticker.assetSymbol === chosenToken)
     if (!token?.priceMatic) return
     const maticAmountForToken = Number(value) * token.priceMatic
-    const fee = Number(maticAmountForToken) * 0.01
-    const maticForToken = Number(maticAmountForToken) * 0.99
+    const fee = Number(maticAmountForToken) * 0.001
+    const maticForToken = Number(maticAmountForToken) * 0.999
     setValue('maticAmount', maticForToken)
     setFee(fee)
   }
@@ -189,10 +189,10 @@ const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
     const maticAmount = Number(maticBalance.formatted)
     setValue('maticAmount', maticAmount)
     const chosenToken = getValues('token')
-    const token = tickersData.find((ticker) => ticker.name === chosenToken)
+    const token = tickersData.find((ticker) => ticker.assetSymbol === chosenToken)
     if (!token?.priceMatic) return
-    const fee = maticAmount * 0.01
-    const maticForToken = maticAmount * 0.99
+    const fee = maticAmount * 0.001
+    const maticForToken = maticAmount * 0.999
     const tokenAmountForMatic = maticForToken / token.priceMatic
     setFee(fee)
     setValue('tokenAmount', tokenAmountForMatic)
@@ -200,22 +200,22 @@ const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
 
   const handleMaxTokenClick = async () => {
     const chosenToken = getValues('token')
-    const token = tickersData.find((ticker) => ticker.name === chosenToken)
-    if (!token?.sTokenAddress || !token?.priceMatic) return
+    const token = tickersData.find((ticker) => ticker.assetSymbol === chosenToken)
+    if (!token?.sToken || !token?.priceMatic) return
     try {
       const balance = await fetchBalance({
         //@ts-ignore
         address: address,
         //@ts-ignore
-        token: token.sTokenAddress
+        token: token.sToken
       })
 
       if (balance) {
         const tokenAmount = Number(balance.formatted)
         setValue('tokenAmount', tokenAmount)
         const maticAmountForToken = tokenAmount * token.priceMatic
-        const fee = maticAmountForToken * 0.01
-        const maticForToken = maticAmountForToken * 0.99
+        const fee = maticAmountForToken * 0.001
+        const maticForToken = maticAmountForToken * 0.999
         setValue('maticAmount', maticForToken)
         setFee(fee)
       }
@@ -256,8 +256,8 @@ const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
                     }}
                   >
                     {tickersData.map((ticker) => (
-                      <option key={uuidv4()} value={ticker.name}>
-                        {ticker.name}
+                      <option key={uuidv4()} value={ticker.assetSymbol}>
+                        {ticker.assetSymbol}
                       </option>
                     ))}
                   </Select>
