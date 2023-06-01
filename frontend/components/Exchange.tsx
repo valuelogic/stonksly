@@ -6,13 +6,15 @@ import { useForm, Controller, SubmitHandler } from 'react-hook-form'
 import { v4 as uuidv4 } from 'uuid'
 import { parseEther } from 'viem'
 import { useAccount, useBalance, useContractEvent, useContractWrite, useNetwork } from 'wagmi'
-import { Box, Button, FormControl, FormLabel } from '@chakra-ui/react'
+import { Box, Button, Container, Flex, FormControl, FormLabel, Text } from '@chakra-ui/react'
 import { Input } from '@chakra-ui/react'
 import { Select } from '@chakra-ui/react'
 import StonkslyAbi from '../constants/abi/stonksly.json'
 import contractAddresses from '../constants/contractsAddresses.json'
 import stokenAbi from '../sToken.json'
 import { IContractAddresses, IFormInputs, ITicker } from '@/types/types'
+import { truncateNumber } from '@/utils/truncate'
+import { ArrowDownIcon, ArrowUpIcon } from '@chakra-ui/icons'
 
 const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
   const [buyMode, setMode] = useState<boolean>(true)
@@ -223,71 +225,114 @@ const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
   }
 
   return (
-    <Box>
+    <Box bg={'#fff'} p={20} style={{ borderRadius: '5%' }}>
       <form onSubmit={handleSubmit(onSubmit)}>
+        {buyMode && (
+          <Flex justifyContent="flex-end">
+            <Text fontSize="xs" mt={2}>
+              Balance: {maticBalance ? truncateNumber(Number(maticBalance.formatted)) : 0}
+            </Text>
+            <Button variant="ghost" colorScheme="blue" size="sm" onClick={handleMaxMaticClick}>
+              Max
+            </Button>
+          </Flex>
+        )}
+        {!buyMode && (
+          <Flex justifyContent="flex-end">
+            <Button variant="ghost" colorScheme="blue" size="sm" onClick={handleMaxTokenClick}>
+              Max
+            </Button>
+          </Flex>
+        )}
         <div style={{ display: 'flex', flexDirection: buyMode ? 'column' : 'column-reverse' }}>
-          <FormControl mb={10}>
-            <FormLabel htmlFor={'maticAmount'}>Matic amount</FormLabel>
-            <Input
-              disabled={!buyMode}
-              placeholder="matic"
-              id={'maticAmount'}
-              {...register('maticAmount', { required: true })}
-              onChange={handleMaticAmountChange}
-            />
-          </FormControl>
-          {buyMode && <Button onClick={handleMaxMaticClick}>Max</Button>}
-          {errors.maticAmount?.type === 'required' && (
-            <Box style={{ color: 'red', marginBottom: '20px' }}>Matic amount is required.</Box>
-          )}
-          <FormControl mb={10}>
-            <FormLabel htmlFor={'token'}>Select Token</FormLabel>
-            <Controller
-              control={control}
-              name="token"
-              render={({ field: { onChange, value } }) => {
-                return (
-                  <Select
-                    value={value}
-                    onChange={(e) => {
-                      const { value } = e.target
-                      onChange(value)
-                      handleTokenSelectChange(value)
-                    }}
-                  >
-                    {tickersData.map((ticker) => (
-                      <option key={uuidv4()} value={ticker.assetSymbol}>
-                        {ticker.assetSymbol}
-                      </option>
-                    ))}
-                  </Select>
-                )
-              }}
-            />
-          </FormControl>
-          <FormControl mb={10}>
-            <FormLabel htmlFor={'tokenAmount'}>Token amount</FormLabel>
-            <Input
-              disabled={buyMode}
-              placeholder="token"
-              id={'tokenAmount'}
-              {...register('tokenAmount', { required: true })}
-              onChange={handleTokenAmountChange}
-            />
-          </FormControl>
-          {!buyMode && <Button onClick={handleMaxTokenClick}>Max</Button>}
-          {errors.tokenAmount?.type === 'required' && (
-            <Box style={{ color: 'red', marginBottom: '20px' }}>Token amount is required.</Box>
-          )}
+          <Flex>
+            <>
+              <FormControl mb={6} mr={2} w={220}>
+                <Input
+                  w={220}
+                  disabled={!buyMode}
+                  placeholder="0"
+                  id={'maticAmount'}
+                  {...register('maticAmount', { required: true })}
+                  onChange={handleMaticAmountChange}
+                />
+              </FormControl>
+              {errors.maticAmount?.type === 'required' && (
+                <Box style={{ color: 'red', marginBottom: '20px' }}>Matic amount is required.</Box>
+              )}
+            </>
+
+            <Select disabled w={100}>
+              <option>MATIC</option>
+            </Select>
+          </Flex>
+          <Flex
+            onClick={handleModeChange}
+            style={{ cursor: 'pointer' }}
+            mb={6}
+            justifyContent="center"
+          >
+            <ArrowDownIcon />
+            <ArrowUpIcon />
+          </Flex>
+          <Flex>
+            <>
+              <FormControl mb={6}>
+                <Input
+                  w={220}
+                  mr={2}
+                  disabled={buyMode}
+                  placeholder="0"
+                  id={'tokenAmount'}
+                  {...register('tokenAmount', { required: true })}
+                  onChange={handleTokenAmountChange}
+                />
+              </FormControl>
+
+              {errors.tokenAmount?.type === 'required' && (
+                <Box style={{ color: 'red', marginBottom: '20px' }}>Token amount is required.</Box>
+              )}
+            </>
+
+            <FormControl mb={6}>
+              <Controller
+                control={control}
+                name="token"
+                render={({ field: { onChange, value } }) => {
+                  return (
+                    <Select
+                      w={100}
+                      value={value}
+                      onChange={(e) => {
+                        const { value } = e.target
+                        onChange(value)
+                        handleTokenSelectChange(value)
+                      }}
+                    >
+                      {tickersData.map((ticker) => (
+                        <option key={uuidv4()} value={ticker.assetSymbol}>
+                          {ticker.assetSymbol}
+                        </option>
+                      ))}
+                    </Select>
+                  )
+                }}
+              />
+            </FormControl>
+          </Flex>
         </div>
-        <Box mb={10}>{`Fee: ${fee} MATIC`}</Box>
-        <Button colorScheme="blue" size="md" type="submit">
+        <Box mb={4}>
+          {' '}
+          <Text fontSize="xs">
+            {' '}
+            <Text as="b">Fee: </Text>
+            {` ${fee} MATIC`}
+          </Text>
+        </Box>
+        <Button w={328} variant="outline" colorScheme="blue" size="md" type="submit">
           {`${buyMode ? 'Buy' : 'Sell'}`}
         </Button>
       </form>
-      <Button mt={10} colorScheme="blue" size="md" onClick={handleModeChange}>
-        change mode
-      </Button>
     </Box>
   )
 }

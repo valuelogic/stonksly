@@ -88,16 +88,16 @@ export default function Market() {
 
   return (
     <Flex m={10} mt={100} justifyContent={'space-around'}>
-      {tickersData.length > 0 && (
-        <>
-          <Flex direction={'column'}>
-            {tickersData.map((ticker) => (
-              <TickerBox key={uuidv4()} ticker={ticker} />
-            ))}
-          </Flex>
-          <Exchange tickersData={tickersData} />
-        </>
-      )}
+        {tickersData.length > 0 && (
+          <>
+            <Flex direction={'column'} bg="#fff"  p={20} style={{ borderRadius: '5%' }}>
+              {tickersData.map((ticker) => (
+                <TickerBox key={uuidv4()} ticker={ticker} />
+              ))}
+            </Flex>
+            <Exchange tickersData={tickersData} />
+          </>
+        )}
     </Flex>
   )
 }

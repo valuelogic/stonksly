@@ -4,7 +4,7 @@ import NextLink from 'next/link'
 import { Box, Flex, Link } from '@chakra-ui/react'
 
 export const Header = () => (
-  <Box as="header" m={10}>
+  <Box as="header" m={4}>
   <Flex alignItems="center" justifyContent="space-between">
     <Flex>
       <Link as={NextLink} href="/" ml={10}>
@@ -14,7 +14,7 @@ export const Header = () => (
         Market
       </Link>
     </Flex>
-    <Box m={10}>
+    <Box m={6}>
       <Web3Button />
     </Box>
   </Flex>
