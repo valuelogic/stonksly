@@ -7,7 +7,7 @@ const CONSTANTS_DIRECTORY = "../../frontend/constants";
 const CONTRACT_ADDRESSES_FILE = `${CONSTANTS_DIRECTORY}/contractsAddresses.json`;
 const CONTRACT_ABI_DIRECTORY = `${CONSTANTS_DIRECTORY}/abi`;
 const CONTRACT_TYPES_FILE = `${CONSTANTS_DIRECTORY}/typechainTypes`;
-const CONTRACTS = ["Stonksly", "PurchaseConsumer", "SaleConsumer"] as const;
+const CONTRACTS = ["Stonksly", "STokenManager"] as const;
 type ContractName = (typeof CONTRACTS)[number];
 interface IContractAddresses {
   [chainId: string]: Record<ContractName, string>;

@@ -4,7 +4,7 @@ const realstonksRequest = Functions.makeHttpRequest({
   url: `https://realstonks.p.rapidapi.com/${symbol}`,
 
   headers: {
-    "X-RapidAPI-Key": "75ba1f6d71mshfea2ae56860c646p1927b7jsn221b3a34deaf", //In the future should be change to encrypted env variable
+    "X-RapidAPI-Key": "75ba1f6d71mshfea2ae56860c646p1927b7jsn221b3a34deaf", //In the future should be change to encrypted env variable (another api key)
     "X-RapidAPI-Host": "realstonks.p.rapidapi.com",
   },
 });

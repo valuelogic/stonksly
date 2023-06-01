@@ -2,6 +2,7 @@
   "name": "hardhat-project",
   "devDependencies": {
     "@chainlink/contracts": "^0.6.1",
+    "@defi-wonderland/smock": "^2.3.4",
     "@nomicfoundation/hardhat-toolbox": "^2.0.2",
     "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers@^0.3.0-beta.13",
     "@openzeppelin/contracts": "^4.8.3",
@@ -10,6 +11,7 @@
     "dotenv": "^16.0.3",
     "ethers": "^5.7.2",
     "hardhat": "^2.14.0",
+    "hardhat-contract-sizer": "^2.9.0",
     "hardhat-deploy": "^0.11.29"
   },
   "overrides": {
@@ -17,6 +19,9 @@
       "@nomiclabs/hardhat-ethers": "$@nomiclabs/hardhat-ethers"
     },
     "@openzeppelin/hardhat-upgrades": {
+      "@nomiclabs/hardhat-ethers": "$@nomiclabs/hardhat-ethers"
+    },
+    "@defi-wonderland/smock@": {
       "@nomiclabs/hardhat-ethers": "$@nomiclabs/hardhat-ethers"
     }
   }
