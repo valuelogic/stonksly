@@ -1,9 +1,13 @@
-"use client"
+'use client'
+
+import Image from 'next/image'
+import { Center } from '@chakra-ui/react'
+import logo from './assets/Stonksly.png'
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      Stonksly: a lot of description text
-    </main>
+    <Center style={{ backgroundColor: '#fff', height: '100vh' }}>
+      <Image src={logo} alt="logo" width={500} height={500} />
+    </Center>
   )
 }
