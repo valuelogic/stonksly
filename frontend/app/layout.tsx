@@ -1,9 +1,9 @@
 'use client'
-import './globals.css'
 
 import { EthereumClient, w3mConnectors, w3mProvider } from '@web3modal/ethereum'
 import { Web3Modal } from '@web3modal/react'
 import { Inter } from 'next/font/google'
+import { Toaster } from 'react-hot-toast'
 import { configureChains, createConfig, WagmiConfig } from 'wagmi'
 import { hardhat, polygonMumbai } from 'wagmi/chains'
 import { ChakraProvider, extendTheme } from '@chakra-ui/react'
@@ -41,6 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Header />
           <WagmiConfig config={wagmiConfig}>{children}</WagmiConfig>
           <Web3Modal projectId={projectId} ethereumClient={ethereumClient} />
+          <Toaster position={'top-right'} />
         </ChakraProvider>
       </body>
     </html>

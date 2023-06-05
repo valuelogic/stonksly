@@ -4,7 +4,8 @@ import { readContract } from '@wagmi/core'
 import axios from 'axios'
 import { v4 as uuidv4 } from 'uuid'
 import { useNetwork, useAccount } from 'wagmi'
-import { Flex } from '@chakra-ui/react'
+import { Center, Flex } from '@chakra-ui/react'
+import { Spinner } from '@chakra-ui/react'
 import stokenmanagerAbi from '../../constants/abi/stokenmanager.json'
 import contractAddresses from '../../constants/contractsAddresses.json'
 import abi from '../../maticUsdPrice.json'
@@ -83,21 +84,25 @@ export default function Market() {
     }
   }, [usdMaticData, sTokens])
 
-  if (!isConnected) return <>Connect wallet</>
-  if (isConnected && chain?.name !== 'Polygon Mumbai') return <>Switch to Polygon Mumbai</>
-
   return (
-    <Flex m={10} mt={100} justifyContent={'space-around'}>
-        {tickersData.length > 0 && (
-          <>
-            <Flex direction={'column'} bg="#fff"  p={20} style={{ borderRadius: '5%' }}>
-              {tickersData.map((ticker) => (
-                <TickerBox key={uuidv4()} ticker={ticker} />
-              ))}
-            </Flex>
-            <Exchange tickersData={tickersData} />
-          </>
-        )}
-    </Flex>
+    <>
+      {!isConnected && <Center>Connect wallet</Center>}
+      {isConnected && chain?.name !== 'Polygon Mumbai' && <Center>Switch to Polygon Mumbai</Center>}
+      {isConnected && chain?.name === 'Polygon Mumbai' && (
+        <Flex m={10} mt={100} justifyContent={'space-around'}>
+          {tickersData.length > 0 && (
+            <>
+              <Flex direction={'column'} bg="#fff" p={20} style={{ borderRadius: '5%' }}>
+                {tickersData.map((ticker) => (
+                  <TickerBox key={uuidv4()} ticker={ticker} />
+                ))}
+              </Flex>
+              <Exchange tickersData={tickersData} />
+            </>
+          )}
+          {tickersData.length === 0 && <Spinner size="xl" />}
+        </Flex>
+      )}
+    </>
   )
 }
