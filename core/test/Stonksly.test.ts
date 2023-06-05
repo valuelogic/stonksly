@@ -352,7 +352,7 @@ describe("Stonksly tests", () => {
 
         const expectedSTokenAmount =
           ethers.BigNumber.from("999000000000000000");
-        const expectedFees = ethers.BigNumber.from("1000000000000000");
+        const expectedFees = ethers.BigNumber.from("500000000000000");
         // Mock invocation by purchase consumer (the same addresses)
         await expect(stonksly.finalizePurchase(0, 100))
           .to.emit(stonksly, "RequestCompleted")
@@ -514,7 +514,7 @@ describe("Stonksly tests", () => {
         await stonksly.connect(investor).initSale(sToken.address, sTokenAmount);
 
         const expectedMaticAmount = ethers.BigNumber.from("999000000000000000");
-        const expectedFees = ethers.BigNumber.from("1000000000000000");
+        const expectedFees = ethers.BigNumber.from("500000000000000");
         const investorBalanceAfterSaleInit = await ethers.provider.getBalance(
           investor.address
         );
@@ -722,7 +722,7 @@ describe("Stonksly tests", () => {
           .connect(investor)
           .initPurchase(sToken.address, { value: investment });
         await stonksly.finalizePurchase(0, 100);
-        const expectedFees = ethers.BigNumber.from("1000000000000000");
+        const expectedFees = ethers.BigNumber.from("500000000000000");
 
         await expect(stonksly.withdrawFees())
           .to.emit(stonksly, "FeesCollected")
@@ -731,6 +731,9 @@ describe("Stonksly tests", () => {
           await ethers.provider.getBalance(stonkslyWallet.address)
         ).to.be.equal(expectedFees);
         expect(await stonksly.getCollectedFees()).to.be.equal(0);
+        expect(await ethers.provider.getBalance(stonksly.address)).to.be.equal(
+          investment.sub(expectedFees)
+        );
       });
 
       it("Should collect fees after sale", async () => {
@@ -743,7 +746,9 @@ describe("Stonksly tests", () => {
         const sTokenAmount = ethers.utils.parseEther("1");
         await stonksly.connect(investor).initSale(sToken.address, sTokenAmount);
         await stonksly.finalizeSale(0, 100);
-        const expectedFees = ethers.BigNumber.from("1000000000000000");
+        const expectedFees = ethers.BigNumber.from("500000000000000");
+        const expectedProtocolBalanceAfterFeesCollection =
+          ethers.BigNumber.from("500000000000000");
 
         await expect(stonksly.withdrawFees())
           .to.emit(stonksly, "FeesCollected")
@@ -752,6 +757,9 @@ describe("Stonksly tests", () => {
           await ethers.provider.getBalance(stonkslyWallet.address)
         ).to.be.equal(expectedFees);
         expect(await stonksly.getCollectedFees()).to.be.equal(0);
+        expect(await ethers.provider.getBalance(stonksly.address)).to.be.equal(
+          expectedProtocolBalanceAfterFeesCollection
+        );
       });
     });
   });
