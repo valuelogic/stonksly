@@ -7,7 +7,7 @@ const TickerBox = ({ ticker }: { ticker: ITicker }) => {
   return (
     <>
       <Box m={10}>
-        <Text as='b'>{ticker.assetSymbol}:</Text> {truncateNumber(ticker?.priceUSD || 0)} USD / {truncateNumber(ticker?.priceMatic || 0)} MATIC
+        <Text as='b'>{ticker.symbol}:</Text> {truncateNumber(ticker?.priceUSD || 0)} USD / {truncateNumber(ticker?.priceMatic || 0)} MATIC
       </Box>
     </>
   )

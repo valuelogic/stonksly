@@ -14,12 +14,13 @@ import { Select } from '@chakra-ui/react'
 import StonkslyAbi from '../constants/abi/stonksly.json'
 import contractAddresses from '../constants/contractsAddresses.json'
 import stokenAbi from '../sToken.json'
+import BalanceBox from './BalanceBox'
 import { IContractAddresses, IFormInputs, ITicker } from '@/types/types'
 import { truncateBalance } from '@/utils/truncate'
 
 const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
   const [buyMode, setMode] = useState<boolean>(true)
-  const [tokenBalance, setTokenBalance] = useState<number>(0)
+  const [currentTokenAddress, setCurrentTokenAddress] = useState<string | null>(null)
   const [fee, setFee] = useState<number>(0)
   const { chain } = useNetwork()
   const { address } = useAccount()
@@ -32,22 +33,11 @@ const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
     address: address,
     watch: true
   })
-  const getTokenBalance = async (tokenAddress: string) => {
-    const balance = await fetchBalance({
-      //@ts-ignore
-      address: address,
-      //@ts-ignore
-      token: tokenAddress
-    })
-    if (balance) {
-      setTokenBalance(Number(balance.formatted))
-    }
-  }
 
   useEffect(() => {
-    if (!address || !tickersData) return
-    getTokenBalance(tickersData[0].sToken)
-  }, [tickersData, address])
+    if (!tickersData) return
+    setCurrentTokenAddress(tickersData[0].sToken)
+  }, [tickersData])
 
   const {
     reset,
@@ -59,7 +49,7 @@ const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
     formState: { errors }
   } = useForm<IFormInputs>({
     defaultValues: {
-      token: tickersData[0].assetSymbol,
+      token: tickersData[0].symbol,
       maticAmount: 0,
       tokenAmount: 0
     }
@@ -87,7 +77,12 @@ const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
     functionName: 'initPurchase',
     onSuccess() {
       toast.success('Transaction sent, please wait.')
-      reset()
+      const chosenToken = getValues('token')
+      reset({
+        token: chosenToken,
+        maticAmount: 0,
+        tokenAmount: 0
+      })
       setFee(0)
     },
     onError(error) {
@@ -102,10 +97,15 @@ const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
     functionName: 'initSale',
     onSuccess() {
       toast.success('Transaction sent, please wait.')
-      reset()
+      const chosenToken = getValues('token')
+      reset({
+        token: chosenToken,
+        maticAmount: 0,
+        tokenAmount: 0
+      })
       setFee(0)
     },
-    onError(error) {
+    onError() {
       toast.error('Something went wrong. Please try again later.')
     }
   })
@@ -115,7 +115,7 @@ const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
     address: stonkslyContractAddress,
     abi: StonkslyAbi,
     eventName: 'RequestCompleted',
-    listener(log) {
+    listener() {
       toast.success('Transaction completed.')
     }
   })
@@ -125,13 +125,13 @@ const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
     address: stonkslyContractAddress,
     abi: StonkslyAbi,
     eventName: 'RequestCreated',
-    listener(log) {
+    listener() {
       toast.success('Transaction created, please wait for confirmation.')
     }
   })
 
   const onSubmit: SubmitHandler<IFormInputs> = async (data) => {
-    const token = tickersData.find((ticker) => ticker.assetSymbol === data.token)
+    const token = tickersData.find((ticker) => ticker.symbol === data.token)
     if (!token?.sToken) return
     if (buyMode) {
       writeBuy?.({
@@ -171,7 +171,7 @@ const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
   const handleMaticAmountChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target
     const chosenToken = getValues('token')
-    const token = tickersData.find((ticker) => ticker.assetSymbol === chosenToken)
+    const token = tickersData.find((ticker) => ticker.symbol === chosenToken)
     if (!token?.priceMatic) return
     if (buyMode) {
       const fee = Number(value) * 0.001
@@ -189,7 +189,7 @@ const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
   }
 
   const handleTokenSelectChange = async (tokenName: string) => {
-    const token = tickersData.find((ticker) => ticker.assetSymbol === tokenName)
+    const token = tickersData.find((ticker) => ticker.symbol === tokenName)
     if (!token?.priceMatic) return
     if (buyMode) {
       const maticAmount = getValues('maticAmount')
@@ -203,14 +203,14 @@ const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
       const maticForToken = Number(maticAmountForToken) * 0.999
       setValue('maticAmount', maticForToken)
       setFee(fee)
-      await getTokenBalance(token.sToken)
     }
+    setCurrentTokenAddress(token.sToken)
   }
 
   const handleTokenAmountChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target
     const chosenToken = getValues('token')
-    const token = tickersData.find((ticker) => ticker.assetSymbol === chosenToken)
+    const token = tickersData.find((ticker) => ticker.symbol === chosenToken)
     if (!token?.priceMatic) return
     const maticAmountForToken = Number(value) * token.priceMatic
     let fee
@@ -227,8 +227,14 @@ const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
   }
 
   const handleModeChange = () => {
+    const chosenToken = getValues('token')
+    reset({
+      token: chosenToken,
+      maticAmount: 0,
+      tokenAmount: 0
+    })
     setMode(!buyMode)
-    reset()
+
     setFee(0)
   }
 
@@ -237,7 +243,7 @@ const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
     const maticAmount = Number(maticBalance.formatted)
     setValue('maticAmount', maticAmount)
     const chosenToken = getValues('token')
-    const token = tickersData.find((ticker) => ticker.assetSymbol === chosenToken)
+    const token = tickersData.find((ticker) => ticker.symbol === chosenToken)
     if (!token?.priceMatic) return
     const fee = maticAmount * 0.001
     const maticForToken = maticAmount * 0.999
@@ -248,7 +254,7 @@ const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
 
   const handleMaxTokenClick = async () => {
     const chosenToken = getValues('token')
-    const token = tickersData.find((ticker) => ticker.assetSymbol === chosenToken)
+    const token = tickersData.find((ticker) => ticker.symbol === chosenToken)
     if (!token?.sToken || !token?.priceMatic) return
     try {
       const balance = await fetchBalance({
@@ -283,11 +289,9 @@ const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
             </Button>
           </Flex>
         )}
-        {!buyMode && (
+        {!buyMode && currentTokenAddress && address && (
           <Flex justifyContent="flex-end">
-            <Text fontSize="xs" mt={2}>
-              Balance: {truncateBalance(Number(tokenBalance))}
-            </Text>
+            <BalanceBox token={currentTokenAddress} address={address} />
             <Button variant="ghost" colorScheme="blue" size="sm" onClick={handleMaxTokenClick}>
               Max
             </Button>
@@ -296,7 +300,7 @@ const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
         <div style={{ display: 'flex', flexDirection: buyMode ? 'column' : 'column-reverse' }}>
           <Flex>
             <>
-              <FormControl mb={6} mr={2} w={220}>
+              <FormControl mb={!buyMode ? 0 : 6} mr={2} w={220}>
                 <Input
                   w={220}
                   placeholder="0"
@@ -324,7 +328,7 @@ const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
           </Flex>
           <Flex>
             <>
-              <FormControl mb={6}>
+              <FormControl>
                 <Input
                   w={220}
                   mr={2}
@@ -339,8 +343,7 @@ const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
                 <Box style={{ color: 'red', marginBottom: '20px' }}>Token amount is required.</Box>
               )}
             </>
-
-            <FormControl mb={6}>
+            <FormControl mb={buyMode ? 0 : 6}>
               <Controller
                 control={control}
                 name="token"
@@ -356,7 +359,7 @@ const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
                       }}
                     >
                       {tickersData.map((ticker) => (
-                        <option key={uuidv4()} value={ticker.assetSymbol}>
+                        <option key={uuidv4()} value={ticker.symbol}>
                           {ticker.symbol}
                         </option>
                       ))}
@@ -367,10 +370,18 @@ const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
             </FormControl>
           </Flex>
         </div>
+        {!buyMode && (
+          <Flex justifyContent="flex-end" >
+            <Text fontSize="xs" mt={2}>
+              Balance: {maticBalance ? truncateBalance(Number(maticBalance.formatted)) : 0}
+            </Text>
+          </Flex>
+        )}
+        {buyMode && currentTokenAddress && address && (
+          <BalanceBox token={currentTokenAddress} address={address} />
+        )}
         <Box mb={4}>
-          {' '}
           <Text fontSize="xs">
-            {' '}
             <Text as="b">Fee: </Text>
             {` ${fee} MATIC`}
           </Text>

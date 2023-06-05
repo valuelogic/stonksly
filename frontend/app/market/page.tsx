@@ -1,7 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { readContract } from '@wagmi/core'
-import axios from 'axios'
 import { v4 as uuidv4 } from 'uuid'
 import { useNetwork, useAccount } from 'wagmi'
 import { Center, Flex } from '@chakra-ui/react'
@@ -61,9 +60,10 @@ export default function Market() {
       const maticPrice = Number(usdMaticData) / 1e8
       const getActualPrice = async (name: string) => {
         try {
-          const response = await axios.get(`api/price/${name}`)
+          const response = await fetch(`api/price/${name}`, { cache: 'no-store' })
+          const result = await response.json()
           if (response.status === 200) {
-            return response.data.actualPrice
+            return result.actualPrice
           }
         } catch (e) {}
       }
