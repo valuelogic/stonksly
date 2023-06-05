@@ -3,7 +3,7 @@ import { Stonksly } from "../typechain-types/contracts/protocol/Stonksly";
 
 const createSTokens = async () => {
   const tokensData = [
-    { name: "Apple", symbol: "SAPPL", assetSymbol: "APPL" },
+    { name: "Apple", symbol: "SAAPL", assetSymbol: "AAPL" },
     { name: "Microsoft", symbol: "SMSFT", assetSymbol: "MSFT" },
     { name: "Tesla", symbol: "STSLA", assetSymbol: "TSLA" },
   ];

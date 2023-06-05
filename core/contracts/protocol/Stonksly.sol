@@ -128,9 +128,9 @@ contract Stonksly is IStonksly, Ownable {
         // MATIC/USD -> 8 decimals, 18 decimals
         uint256 normalizedMaticPrice = uint256(price) * 1e10;
 
-        //0,1% fee
+        //0,1% fee -> 0,05% to provide MATIC liquidity
         uint256 afterCharge = ((request.amount * 999) / 1000);
-        s_collectedFees += request.amount - afterCharge;
+        s_collectedFees += (request.amount - afterCharge) / 2;
 
         uint256 valueInUsd = (afterCharge * normalizedMaticPrice) / 1e18;
         uint256 valueInCents = valueInUsd * 100;
@@ -211,9 +211,9 @@ contract Stonksly is IStonksly, Ownable {
 
         uint256 maticAmount = (sTokensValueInCents * 1e18) / maticPriceInCents;
 
-        // //0,1% fee
+        //0,1% fee -> 0,05% to provide MATIC liquidity
         uint256 maticToWithdraw = (maticAmount * 999) / 1000;
-        s_collectedFees += maticAmount - maticToWithdraw;
+        s_collectedFees += (maticAmount - maticToWithdraw) / 2;
 
         SToken(request.sToken).burn(address(this), request.amount);
         sendMatic(request.account, maticToWithdraw);
