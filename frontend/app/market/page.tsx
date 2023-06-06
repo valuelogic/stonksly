@@ -1,10 +1,10 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { readContract } from '@wagmi/core'
-import axios from 'axios'
 import { v4 as uuidv4 } from 'uuid'
 import { useNetwork, useAccount } from 'wagmi'
-import { Flex } from '@chakra-ui/react'
+import { Center, Flex } from '@chakra-ui/react'
+import { Spinner } from '@chakra-ui/react'
 import stokenmanagerAbi from '../../constants/abi/stokenmanager.json'
 import contractAddresses from '../../constants/contractsAddresses.json'
 import abi from '../../maticUsdPrice.json'
@@ -60,9 +60,10 @@ export default function Market() {
       const maticPrice = Number(usdMaticData) / 1e8
       const getActualPrice = async (name: string) => {
         try {
-          const response = await axios.get(`api/price/${name}`)
+          const response = await fetch(`api/price/${name}`, { cache: 'no-store' })
+          const result = await response.json()
           if (response.status === 200) {
-            return response.data.actualPrice
+            return result.actualPrice
           }
         } catch (e) {}
       }
@@ -83,21 +84,25 @@ export default function Market() {
     }
   }, [usdMaticData, sTokens])
 
-  if (!isConnected) return <>Connect wallet</>
-  if (isConnected && chain?.name !== 'Polygon Mumbai') return <>Switch to Polygon Mumbai</>
-
   return (
-    <Flex m={10} mt={100} justifyContent={'space-around'}>
-      {tickersData.length > 0 && (
-        <>
-          <Flex direction={'column'}>
-            {tickersData.map((ticker) => (
-              <TickerBox key={uuidv4()} ticker={ticker} />
-            ))}
-          </Flex>
-          <Exchange tickersData={tickersData} />
-        </>
+    <>
+      {!isConnected && <Center>Connect wallet</Center>}
+      {isConnected && chain?.name !== 'Polygon Mumbai' && <Center>Switch to Polygon Mumbai</Center>}
+      {isConnected && chain?.name === 'Polygon Mumbai' && (
+        <Flex m={10} mt={100} justifyContent={'space-around'}>
+          {tickersData.length > 0 && (
+            <>
+              <Flex direction={'column'} bg="#fff" p={20} style={{ borderRadius: '5%' }}>
+                {tickersData.map((ticker) => (
+                  <TickerBox key={uuidv4()} ticker={ticker} />
+                ))}
+              </Flex>
+              <Exchange tickersData={tickersData} />
+            </>
+          )}
+          {tickersData.length === 0 && <Spinner size="xl" />}
+        </Flex>
       )}
-    </Flex>
+    </>
   )
 }
