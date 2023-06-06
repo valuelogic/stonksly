@@ -1,22 +1,19 @@
+import { IContractAddresses, IFormInputs, ITicker } from '@/types/types'
+import { truncateBalance } from '@/utils/truncate'
+import { ArrowDownIcon, ArrowUpIcon } from '@chakra-ui/icons'
+import { Box, Button, Flex, FormControl, Input, Select, Text } from '@chakra-ui/react'
+import { fetchBalance, readContract, waitForTransaction, writeContract } from '@wagmi/core'
+import { BigNumber, constants, utils } from 'ethers'
 import { ChangeEvent, useEffect, useState } from 'react'
-import { readContract, writeContract, fetchBalance, waitForTransaction } from '@wagmi/core'
-import { utils } from 'ethers'
-import { BigNumber } from 'ethers'
-import { useForm, Controller, SubmitHandler } from 'react-hook-form'
+import { Controller, SubmitHandler, useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import { v4 as uuidv4 } from 'uuid'
 import { parseEther } from 'viem'
 import { useAccount, useBalance, useContractEvent, useContractWrite, useNetwork } from 'wagmi'
-import { ArrowDownIcon, ArrowUpIcon } from '@chakra-ui/icons'
-import { Box, Button, Flex, FormControl, Text } from '@chakra-ui/react'
-import { Input } from '@chakra-ui/react'
-import { Select } from '@chakra-ui/react'
 import StonkslyAbi from '../constants/abi/stonksly.json'
 import contractAddresses from '../constants/contractsAddresses.json'
 import stokenAbi from '../sToken.json'
 import BalanceBox from './BalanceBox'
-import { IContractAddresses, IFormInputs, ITicker } from '@/types/types'
-import { truncateBalance } from '@/utils/truncate'
 
 const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
   const [buyMode, setMode] = useState<boolean>(true)
@@ -149,7 +146,7 @@ const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
             address: token.sToken || '',
             abi: stokenAbi,
             functionName: 'approve',
-            args: [stonkslyContractAddress, utils.parseEther(data.tokenAmount.toString())]
+            args: [stonkslyContractAddress, constants.MaxUint256]
           })
           await waitForTransaction({
             hash
@@ -371,7 +368,7 @@ const Exchange = ({ tickersData }: { tickersData: ITicker[] }) => {
           </Flex>
         </div>
         {!buyMode && (
-          <Flex justifyContent="flex-end" >
+          <Flex justifyContent="flex-end">
             <Text fontSize="xs" mt={2}>
               Balance: {maticBalance ? truncateBalance(Number(maticBalance.formatted)) : 0}
             </Text>
