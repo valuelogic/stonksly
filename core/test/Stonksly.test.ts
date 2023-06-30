@@ -2,10 +2,11 @@ import { FakeContract, smock } from "@defi-wonderland/smock";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { expect, use } from "chai";
 import { ethers } from "hardhat";
-import { Consumer } from "../typechain-types/contracts/Consumer";
+import { Consumer } from "../typechain-types/contracts/protocol/Consumer";
 import { SToken } from "../typechain-types/contracts/protocol/SToken";
 import { STokenManager } from "../typechain-types/contracts/protocol/STokenManager";
 import { Stonksly } from "../typechain-types/contracts/protocol/Stonksly";
+import { StonkslyToken } from "../typechain-types/contracts/protocol/StonkslyToken";
 
 use(smock.matchers);
 
@@ -48,6 +49,9 @@ describe("Stonksly tests", () => {
       "STokenManager"
     );
     const sToken: FakeContract<SToken> = await smock.fake("SToken");
+    const stonkslyToken: FakeContract<StonkslyToken> = await smock.fake(
+      "StonkslyToken"
+    );
 
     sTokenManager.deploySToken.returns(sToken.address);
     sToken.getAssetSymbol.returns(ASSET_SYMBOL);
@@ -56,6 +60,7 @@ describe("Stonksly tests", () => {
       stonkslyWallet.address,
       priceFeedMock.address,
       sTokenManager.address,
+      stonkslyToken.address,
     ];
 
     const StonkslyFactory = await ethers.getContractFactory("Stonksly");

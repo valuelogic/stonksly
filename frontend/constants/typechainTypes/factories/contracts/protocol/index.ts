@@ -9,3 +9,4 @@ export { SToken__factory } from "./SToken__factory";
 export { STokenManager__factory } from "./STokenManager__factory";
 export { SaleConsumer__factory } from "./SaleConsumer__factory";
 export { Stonksly__factory } from "./Stonksly__factory";
+export { StonkslyToken__factory } from "./StonkslyToken__factory";

@@ -44,3 +44,5 @@ export type { STokenManager } from "./contracts/protocol/STokenManager";
 export { STokenManager__factory } from "./factories/contracts/protocol/STokenManager__factory";
 export type { Stonksly } from "./contracts/protocol/Stonksly";
 export { Stonksly__factory } from "./factories/contracts/protocol/Stonksly__factory";
+export type { StonkslyToken } from "./contracts/protocol/StonkslyToken";
+export { StonkslyToken__factory } from "./factories/contracts/protocol/StonkslyToken__factory";
