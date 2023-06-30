@@ -3,12 +3,14 @@ pragma solidity 0.8.18;
 
 import "./IConsumer.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "./STokenManager.sol";
 import "./IStonksly.sol";
 
 error Stonksly__NotAllowedCall(address who);
 error Stonksly__TransferFailed(address account, uint256 amount);
+error Stonksly__RewardTransferFailed(address account, uint256 amount);
 error Stonksly_RequestIsNotPending(uint256 id);
 error Stonksly_ConsumerAlreadySet();
 error Stonksly__NotEnoughtLiquidityProvided();
@@ -21,6 +23,7 @@ contract Stonksly is IStonksly, Ownable {
     address immutable s_stonkslyWallet;
     AggregatorV3Interface immutable s_priceFeed;
     STokenManager immutable s_sTokenManager;
+    address payable immutable s_stonkslyToken;
 
     IConsumer private s_purchaseConsumer;
     IConsumer private s_saleConsumer;
@@ -29,6 +32,16 @@ contract Stonksly is IStonksly, Ownable {
     uint256 private s_idCounter;
 
     address[] private s_sTokensAddresses;
+
+    uint256 private duration;
+    uint256 private finishAt;
+    uint256 private updatedAt;
+    uint256 private rewardRate;
+    uint256 private rewardPerTokenStored;
+    mapping(address => uint256) private userRewardPerTokenPaid;
+    mapping(address => uint256) private rewards;
+    uint256 private totalSupply;
+
     mapping(address => bool) private s_sTokens;
     mapping(uint256 => Request) private s_requests;
     mapping(address => uint256) private s_liquidityProviders;
@@ -60,11 +73,38 @@ contract Stonksly is IStonksly, Ownable {
     constructor(
         address _stonkslyWallet,
         AggregatorV3Interface _priceFeed,
-        STokenManager _sTokenManager
+        STokenManager _sTokenManager,
+        address payable _stonkslyToken
     ) {
         s_stonkslyWallet = _stonkslyWallet;
         s_priceFeed = _priceFeed;
         s_sTokenManager = _sTokenManager;
+        s_stonkslyToken = _stonkslyToken;
+    }
+
+    modifier updateReward(address _account) {
+      rewardPerTokenStored = rewardPerToken();
+      updatedAt = lastTimeRewardApplicable();
+
+      if (_account != address(0)) {
+        rewards[_account] = earned(_account);
+        userRewardPerTokenPaid[_account] = rewardPerTokenStored;
+      }
+
+       _;
+    }
+
+    function lastTimeRewardApplicable() public view returns (uint) {
+        return _min(finishAt, block.timestamp);
+    }
+
+    function rewardPerToken() public view returns (uint) {
+      if (totalSupply == 0) {
+        return rewardPerTokenStored;
+      }
+
+      return
+        rewardPerTokenStored + (rewardRate * (lastTimeRewardApplicable() - updatedAt) * 1e18) / totalSupply;
     }
 
     function createSToken(
@@ -286,6 +326,7 @@ contract Stonksly is IStonksly, Ownable {
     // To provide additional MATIC liquidity - can be rewarded in future
     function addLiquidity() public payable {
         s_liquidityProviders[msg.sender] += msg.value;
+        totalSupply += msg.value;
         emit LiquidityProvided(msg.sender, msg.value);
     }
 
@@ -294,9 +335,55 @@ contract Stonksly is IStonksly, Ownable {
             revert Stonksly__NotEnoughtLiquidityProvided();
         }
         s_liquidityProviders[msg.sender] -= _amount;
+        totalSupply -= _amount;
         sendMatic(msg.sender, _amount);
 
         emit LiquidityRemoved(msg.sender, _amount);
+    }
+
+    function earned(address _account) public view returns (uint) {
+      return
+        ((s_liquidityProviders[_account] * (rewardPerToken() - userRewardPerTokenPaid[_account])) / 1e18) + rewards[_account];
+    }
+
+    function getReward() private updateReward(msg.sender) {
+      uint256 reward = rewards[msg.sender];
+        if (reward > 0) {
+          rewards[msg.sender] = 0;
+        (bool success, ) = msg.sender.call{value: reward}("");
+        if (!success) {
+            revert Stonksly__RewardTransferFailed(msg.sender, reward);
+        }
+        }
+    }
+
+    function setRewardsDuration(uint256 _duration) private onlyOwner {
+        require(finishAt < block.timestamp, "reward duration not finished");
+        duration = _duration;
+    }
+
+    function notifyRewardAmount(
+        uint256 _amount
+    ) private onlyOwner updateReward(address(0)) {
+        if (block.timestamp >= finishAt) {
+            rewardRate = _amount / duration;
+        } else {
+            uint256 remainingRewards = (finishAt - block.timestamp) * rewardRate;
+            rewardRate = (_amount + remainingRewards) / duration;
+        }
+        
+        require(rewardRate > 0, "reward rate = 0");
+        require(
+            rewardRate * duration <=  IERC20(s_stonkslyToken).balanceOf(address(this)),
+            "reward amount > balance"
+        );
+
+        finishAt = block.timestamp + duration;
+        updatedAt = block.timestamp;
+    }
+
+    function _min(uint x, uint y) private pure returns (uint) {
+        return x <= y ? x : y;
     }
 
     function sendMatic(address _receiver, uint256 _amount) private {

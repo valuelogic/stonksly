@@ -9,3 +9,4 @@ export type { SToken } from "./SToken";
 export type { STokenManager } from "./STokenManager";
 export type { SaleConsumer } from "./SaleConsumer";
 export type { Stonksly } from "./Stonksly";
+export type { StonkslyToken } from "./StonkslyToken";
